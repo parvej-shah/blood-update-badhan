@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface MonthlyData {
   month: string
@@ -65,10 +66,10 @@ export function MonthlyChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Donations (Last 12 Months)</CardTitle>
+          <Skeleton className="h-6 w-64" />
         </CardHeader>
         <CardContent>
-          <div className="h-64 bg-muted animate-pulse rounded" />
+          <Skeleton className="h-[300px] w-full" />
         </CardContent>
       </Card>
     )

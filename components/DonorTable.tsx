@@ -6,8 +6,21 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { formatDateForDisplay } from "@/lib/validation"
-import { Download } from "lucide-react"
+import { Download, Edit, Trash2 } from "lucide-react"
+import { EditDonorDialog } from "./EditDonorDialog"
+import { checkAdminStatus } from "@/lib/auth"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const bloodGroups = ["all", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
@@ -30,12 +43,30 @@ export function DonorTable() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [editingDonor, setEditingDonor] = useState<Donor | null>(null)
+  const [deleteDonor, setDeleteDonor] = useState<Donor | null>(null)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [filters, setFilters] = useState({
     bloodGroup: "all",
     search: "",
     dateFrom: "",
     dateTo: "",
   })
+
+  // Check admin status from localStorage on mount
+  useEffect(() => {
+    const admin = checkAdminStatus()
+    setIsAdmin(admin)
+    
+    // Listen for storage changes (in case admin status changes in another tab)
+    const handleStorageChange = () => {
+      setIsAdmin(checkAdminStatus())
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
 
   const fetchDonors = async () => {
     setLoading(true)
@@ -89,6 +120,61 @@ export function DonorTable() {
     a.download = `donors-${new Date().toISOString().split("T")[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  const handleEdit = (donor: Donor) => {
+    setEditingDonor(donor)
+    setShowEditDialog(true)
+  }
+
+  const handleDelete = (donor: Donor) => {
+    setDeleteDonor(donor)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteDonor) return
+
+    try {
+      const isRockstar = localStorage.getItem('IsRockstar')
+      const response = await fetch(`/api/donors/${deleteDonor.id}`, {
+        method: "DELETE",
+        headers: {
+          'x-is-rockstar': isRockstar || '',
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete donor")
+      }
+
+      if (window.toast) {
+        window.toast({
+          title: "Success",
+          description: "Donor deleted successfully!",
+          variant: "success",
+        })
+      }
+
+      // Refresh the table
+      fetchDonors()
+      setShowDeleteDialog(false)
+      setDeleteDonor(null)
+    } catch (error: any) {
+      if (window.toast) {
+        window.toast({
+          title: "Error",
+          description: error.message || "Failed to delete donor",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
+  const handleEditSuccess = () => {
+    fetchDonors()
   }
 
   return (
@@ -154,7 +240,50 @@ export function DonorTable() {
 
           {/* Table */}
           {loading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="space-y-4">
+              {/* Table Header Skeleton */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2"><Skeleton className="h-4 w-16" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-20" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-12" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-16" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-16" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-12" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-16" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-20" /></th>
+                      <th className="text-left p-2"><Skeleton className="h-4 w-20" /></th>
+                      {isAdmin && <th className="text-left p-2"><Skeleton className="h-4 w-16" /></th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...Array(limit)].map((_, i) => (
+                      <tr key={i} className="border-b">
+                        <td className="p-2"><Skeleton className="h-4 w-24" /></td>
+                        <td className="p-2"><Skeleton className="h-6 w-12" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-16" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-20" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-24" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-20" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-20" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-16" /></td>
+                        <td className="p-2"><Skeleton className="h-4 w-20" /></td>
+                        {isAdmin && (
+                          <td className="p-2">
+                            <div className="flex items-center gap-2">
+                              <Skeleton className="h-8 w-8" />
+                              <Skeleton className="h-8 w-8" />
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           ) : donors.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">No donors found</div>
           ) : (
@@ -172,6 +301,7 @@ export function DonorTable() {
                       <th className="text-left p-2">Referrer</th>
                       <th className="text-left p-2">Hall Name</th>
                       <th className="text-left p-2">Added On</th>
+                      {isAdmin && <th className="text-left p-2">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -188,6 +318,28 @@ export function DonorTable() {
                         <td className="p-2">{donor.referrer || "N/A"}</td>
                         <td className="p-2">{donor.hallName || "N/A"}</td>
                         <td className="p-2">{new Date(donor.createdAt).toLocaleDateString()}</td>
+                        {isAdmin && (
+                          <td className="p-2">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(donor)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(donor)}
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -241,6 +393,35 @@ export function DonorTable() {
           )}
         </div>
       </CardContent>
+
+      {/* Edit Dialog */}
+      <EditDonorDialog
+        donor={editingDonor}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Donor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete donor <strong>{deleteDonor?.name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }
