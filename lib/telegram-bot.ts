@@ -43,6 +43,28 @@ export function detectDonorDataPattern(text: string): boolean {
   return /Donor Name:\s*.+/i.test(text)
 }
 
+export function detectPotentiallyDonorRelated(text: string): boolean {
+  // Check if message might be donor-related but not properly formatted
+  // Look for keywords that suggest donor information
+  const donorKeywords = [
+    /blood\s*group/i,
+    /blood\s*type/i,
+    /phone/i,
+    /mobile/i,
+    /donor/i,
+    /batch/i,
+    /hospital/i,
+    /referrer/i,
+    /hall/i,
+    /\b(A\+|A-|B\+|B-|AB\+|AB-|O\+|O-)\b/i, // Blood groups
+    /\b0?1[3-9]\d{8,9}\b/, // Bangladesh phone numbers
+  ]
+  
+  // Check if at least 2 keywords are present (suggests donor info)
+  const matches = donorKeywords.filter(keyword => keyword.test(text))
+  return matches.length >= 2
+}
+
 export async function processDonorMessage(
   messageText: string,
   chatId: number

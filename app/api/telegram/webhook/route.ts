@@ -3,6 +3,7 @@ import {
   getBotInstance,
   isGroupAllowed,
   detectDonorDataPattern,
+  detectPotentiallyDonorRelated,
   processDonorMessage,
   formatResponseMessage,
   getFormatInstructions,
@@ -98,6 +99,27 @@ export async function POST(request: NextRequest) {
 
     // Check if message contains donor data pattern
     if (!detectDonorDataPattern(messageText)) {
+      // Check if it might be donor-related but not properly formatted
+      if (detectPotentiallyDonorRelated(messageText)) {
+        // Message seems donor-related but not formatted correctly
+        try {
+          const bot = getBotInstance()
+          const formatInstructions = getFormatInstructions()
+          const responseText = `❌ Please format your message correctly.\n\n${formatInstructions}\n\nPlease send the donor information again using the format above.`
+          
+          // Escape markdown special characters
+          const escapedResponse = responseText.replace(/_/g, '\\_').replace(/\*/g, '\\*')
+          
+          await bot.sendMessage(chatId, escapedResponse, {
+            reply_to_message_id: messageId,
+            parse_mode: 'Markdown',
+          })
+          
+          console.log(`📝 Sent format instructions to group ${chatId} for unformatted message`)
+        } catch (error: any) {
+          console.error('Error sending format instructions:', error)
+        }
+      }
       // Not a donor data message, ignore
       return NextResponse.json({ ok: true })
     }
