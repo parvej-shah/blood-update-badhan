@@ -57,12 +57,49 @@ export function detectPotentiallyDonorRelated(text: string): boolean {
     /referrer/i,
     /hall/i,
     /\b(A\+|A-|B\+|B-|AB\+|AB-|O\+|O-)\b/i, // Blood groups
-    /\b0?1[3-9]\d{8,9}\b/, // Bangladesh phone numbers
+    /\b0?1[3-9]\d{8,9}\b/, // Bangladesh phone numbers (01XXXXXXXXX format)
+    /\b\+?8801[3-9]\d{8,9}\b/, // Bangladesh phone numbers (+880 format)
   ]
   
-  // Check if at least 2 keywords are present (suggests donor info)
-  const matches = donorKeywords.filter(keyword => keyword.test(text))
-  return matches.length >= 2
+  // Check for date patterns (DD/MM/YY, DD-MM-YY, etc.)
+  const datePatterns = [
+    /\d{1,2}\s*[\/\-\.]\s*\d{1,2}\s*[\/\-\.]\s*\d{2,4}/, // Date formats like 21/1/26, 21-01-2026
+    /\d{1,2}\s+\d{1,2}\s+\d{2,4}/, // Date formats like 21 1 26
+  ]
+  
+  // Check if at least 2 indicators are present (suggests donor info)
+  const keywordMatches = donorKeywords.filter(keyword => keyword.test(text))
+  const dateMatches = datePatterns.filter(pattern => pattern.test(text))
+  const totalMatches = keywordMatches.length + (dateMatches.length > 0 ? 1 : 0)
+  
+  // Also check if we have a name-like pattern (multiple words that could be a name)
+  const namePattern = /^[A-Za-z\s]{3,30}$/m // Simple name pattern (3-30 letters/spaces)
+  const hasNameLikePattern = namePattern.test(text.split('\n')[0]?.trim() || '')
+  
+  // If we have blood group + phone, or blood group + date, or name + blood group + phone/date
+  const hasBloodGroup = /\b(A\+|A-|B\+|B-|AB\+|AB-|O\+|O-)\b/i.test(text)
+  const hasPhone = /\b0?1[3-9]\d{8,9}\b/.test(text) || /\b\+?8801[3-9]\d{8,9}\b/.test(text)
+  const hasDate = dateMatches.length > 0
+  
+  // More lenient: if we have blood group + (phone OR date), or name + blood group + (phone OR date)
+  if (hasBloodGroup && (hasPhone || hasDate)) {
+    console.log(`✅ Detected potentially donor-related: blood group + ${hasPhone ? 'phone' : 'date'}`)
+    return true
+  }
+  
+  if (hasNameLikePattern && hasBloodGroup && (hasPhone || hasDate)) {
+    console.log(`✅ Detected potentially donor-related: name + blood group + ${hasPhone ? 'phone' : 'date'}`)
+    return true
+  }
+  
+  // Fallback: at least 2 keyword matches
+  if (totalMatches >= 2) {
+    console.log(`✅ Detected potentially donor-related: ${totalMatches} matches`)
+    return true
+  }
+  
+  console.log(`❌ Not detected as donor-related: bloodGroup=${hasBloodGroup}, phone=${hasPhone}, date=${hasDate}, matches=${totalMatches}`)
+  return false
 }
 
 export async function processDonorMessage(

@@ -100,8 +100,10 @@ export async function POST(request: NextRequest) {
     // Check if message contains donor data pattern
     if (!detectDonorDataPattern(messageText)) {
       // Check if it might be donor-related but not properly formatted
+      console.log(`🔍 Checking if message is potentially donor-related: "${messageText.substring(0, 50)}..."`)
       if (detectPotentiallyDonorRelated(messageText)) {
         // Message seems donor-related but not formatted correctly
+        console.log(`📝 Detected unformatted donor message, sending format instructions...`)
         try {
           const bot = getBotInstance()
           const formatInstructions = getFormatInstructions()
@@ -115,10 +117,13 @@ export async function POST(request: NextRequest) {
             parse_mode: 'Markdown',
           })
           
-          console.log(`📝 Sent format instructions to group ${chatId} for unformatted message`)
+          console.log(`✅ Sent format instructions to group ${chatId} for unformatted message`)
         } catch (error: any) {
-          console.error('Error sending format instructions:', error)
+          console.error('❌ Error sending format instructions:', error)
+          console.error('   Error details:', error.message, error.stack)
         }
+      } else {
+        console.log(`ℹ️  Message not detected as donor-related, ignoring`)
       }
       // Not a donor data message, ignore
       return NextResponse.json({ ok: true })
