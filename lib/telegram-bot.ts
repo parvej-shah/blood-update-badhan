@@ -83,12 +83,21 @@ export async function processDonorMessage(
         let apiUrl = process.env.NEXT_PUBLIC_API_URL
         
         if (!apiUrl) {
-          // Default to localhost for development
-          apiUrl = 'http://localhost:3000'
-          
-          // In production (Vercel), use the VERCEL_URL if available
-          if (process.env.NODE_ENV === 'production' && process.env.VERCEL_URL) {
-            apiUrl = `https://${process.env.VERCEL_URL}`
+          // In production (Vercel), use VERCEL_URL or construct from headers
+          if (process.env.NODE_ENV === 'production') {
+            if (process.env.VERCEL_URL) {
+              apiUrl = `https://${process.env.VERCEL_URL}`
+            } else if (process.env.VERCEL) {
+              // Fallback: construct from Vercel deployment URL
+              // This should be set via NEXT_PUBLIC_API_URL in production
+              apiUrl = 'https://badhan-blood-update.vercel.app'
+            } else {
+              // Default fallback for production
+              apiUrl = 'https://badhan-blood-update.vercel.app'
+            }
+          } else {
+            // Default to localhost for development
+            apiUrl = 'http://localhost:3000'
           }
         }
         
@@ -107,7 +116,27 @@ export async function processDonorMessage(
           throw new Error(`Cannot connect to ${apiUrl}. Make sure Next.js server is running on port 3000.`)
         }
 
-        const data = await response.json()
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type')
+        const text = await response.text()
+        
+        let data: any
+        if (contentType && contentType.includes('application/json') && text) {
+          try {
+            data = JSON.parse(text)
+          } catch (parseError: any) {
+            console.error(`❌ Failed to parse JSON response:`, parseError.message)
+            console.error(`   Response text:`, text.substring(0, 200))
+            throw new Error(`Invalid JSON response from API: ${parseError.message}`)
+          }
+        } else {
+          // Response is not JSON or is empty
+          console.error(`❌ Unexpected response format. Status: ${response.status}`)
+          console.error(`   Content-Type: ${contentType || 'not set'}`)
+          console.error(`   Response text:`, text.substring(0, 200))
+          throw new Error(`API returned non-JSON response (Status: ${response.status})`)
+        }
+        
         console.log(`📥 API Response: ${response.status} -`, data)
 
         if (response.ok) {
