@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Donor {
+  id          String   @id @default(cuid())
+  name        String
+  bloodGroup  String
+  batch       String?
+  hospital    String?
+  phone       String
+  date        String
+  referrer    String?
+  hallName    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([bloodGroup])
+  @@index([date])
+  @@index([createdAt])
+  @@unique([phone, date, name])
+  @@map("Donor")
+}
+
