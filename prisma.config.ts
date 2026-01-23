@@ -2,9 +2,12 @@
 // npm install --save-dev prisma dotenv
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
+import { existsSync } from "fs";
 
-// Load .env.local file
-config({ path: ".env.local" });
+// Load .env.local file if it exists (may not exist in CI/CD environments)
+if (existsSync(".env.local")) {
+  config({ path: ".env.local" });
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
