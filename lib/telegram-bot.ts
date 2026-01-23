@@ -120,8 +120,23 @@ export async function processDonorMessage(
   }> = []
 
   try {
-    // Parse the message text
-    const parsedDonors = parseBulkFormattedText(messageText)
+    // Parse the message text (async, supports AI parsing)
+    let parsedDonors: ParsedDonorData[] = []
+    
+    try {
+      parsedDonors = await parseBulkFormattedText(messageText)
+    } catch (parseError: any) {
+      console.error('Failed to parse message:', parseError)
+      // If parsing fails completely, return error
+      return {
+        success: false,
+        results: [{
+          donor: {} as ParsedDonorData,
+          status: 'error',
+          message: `❌ Failed to parse donor data: ${parseError.message || 'Unknown error'}\n\n${getFormatInstructions()}`,
+        }],
+      }
+    }
 
     if (parsedDonors.length === 0) {
       return {

@@ -30,6 +30,11 @@ TELEGRAM_WEBHOOK_URL="https://yourdomain.com/api/telegram/webhook"
 TELEGRAM_ALLOWED_GROUP_IDS="123456789,-987654321"
 TELEGRAM_WEBHOOK_SECRET="your_optional_webhook_secret"
 NEXT_PUBLIC_API_URL="https://yourdomain.com"
+
+# AI Parsing Configuration (Optional - for unstructured data parsing)
+GEMINI_API_KEY="your_gemini_api_key"
+DEEPSEEK_API_KEY="your_deepseek_api_key"
+USE_AI_PARSING="true"
 ```
 
 **Getting your database URL from Supabase:**
@@ -49,6 +54,24 @@ NEXT_PUBLIC_API_URL="https://yourdomain.com"
 4. Add your webhook URL (after deployment) as `TELEGRAM_WEBHOOK_URL`
 5. Optionally restrict bot to specific groups by adding their chat IDs to `TELEGRAM_ALLOWED_GROUP_IDS` (comma-separated)
 6. Set `NEXT_PUBLIC_API_URL` to your deployed domain (e.g., `https://your-app.vercel.app`)
+
+**AI Parsing Setup (Optional - for unstructured data):**
+The system can automatically parse unstructured donor information using AI when the regex parser fails. You can use either Google Gemini or DeepSeek (or both for fallback).
+
+1. **Google Gemini (Free tier available):**
+   - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Create an API key
+   - Add it as `GEMINI_API_KEY` in `.env.local`
+
+2. **DeepSeek (Free API):**
+   - Go to [DeepSeek Platform](https://platform.deepseek.com/)
+   - Create an account and get an API key
+   - Add it as `DEEPSEEK_API_KEY` in `.env.local`
+
+3. **Configuration:**
+   - Set `USE_AI_PARSING="true"` to enable AI parsing (default: true)
+   - If both API keys are provided, the system will try Gemini first, then DeepSeek as fallback
+   - AI parsing is only used when regex parsing fails or unstructured text is detected
 
 ### 3. Initialize Database
 

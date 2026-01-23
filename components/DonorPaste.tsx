@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { parseFormattedText, parseBulkFormattedText } from "@/lib/parser"
+import { parseFormattedText, parseBulkFormattedTextSync } from "@/lib/parser"
 import { Badge } from "@/components/ui/badge"
 
 export function DonorPaste() {
@@ -18,8 +18,8 @@ export function DonorPaste() {
   const handleParse = () => {
     try {
       setError(null)
-      // Try bulk parsing first
-      const bulkParsed = parseBulkFormattedText(text)
+      // Try bulk parsing first (sync version for client-side)
+      const bulkParsed = parseBulkFormattedTextSync(text)
       
       if (bulkParsed.length > 1) {
         setIsBulk(true)
