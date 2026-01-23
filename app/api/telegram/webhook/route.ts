@@ -69,6 +69,11 @@ export async function POST(request: NextRequest) {
     const messageText = message.text
     const messageId = message.message_id
 
+    // Ensure messageText is defined (should be guaranteed by check above, but TypeScript needs this)
+    if (!messageText) {
+      return NextResponse.json({ ok: true })
+    }
+
     // Only process group messages
     if (message.chat.type === 'private') {
       // Send help message for private chats
