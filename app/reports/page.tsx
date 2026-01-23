@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { BloodGroupPieChart, DailyTrendsChart } from "@/components/Charts"
 import { Download } from "lucide-react"
 
@@ -153,7 +154,89 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {reportData && (
+      {loading ? (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-36" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      ) : reportData ? (
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
@@ -229,7 +312,7 @@ export default function ReportsPage() {
 
           <DailyTrendsChart data={reportData.dailyTrends} />
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
