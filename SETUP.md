@@ -33,7 +33,9 @@ NEXT_PUBLIC_API_URL="https://yourdomain.com"
 
 # AI Parsing Configuration (Optional - for unstructured data parsing)
 GEMINI_API_KEY="your_gemini_api_key"
+GEMINI_MODEL="gemini-1.5-flash-latest"  # Optional: gemini-1.5-flash-latest, gemini-1.5-pro-latest, gemini-2.0-flash-exp (default: tries multiple)
 DEEPSEEK_API_KEY="your_deepseek_api_key"
+DEEPSEEK_MODEL="deepseek-chat"  # Optional: deepseek-chat, deepseek-v3, deepseek-coder, deepseek-reasoner (default: deepseek-chat)
 USE_AI_PARSING="true"
 ```
 
@@ -62,16 +64,24 @@ The system can automatically parse unstructured donor information using AI when 
    - Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
    - Create an API key
    - Add it as `GEMINI_API_KEY` in `.env.local`
+   - Optionally set `GEMINI_MODEL` to specify the model
+     - **Free API models**: `gemini-1.5-flash-latest`, `gemini-1.5-pro-latest`, `gemini-2.0-flash-exp`
+     - The system will automatically try multiple models if one fails
+     - Default order: `gemini-1.5-flash-latest` → `gemini-1.5-pro-latest` → `gemini-2.0-flash-exp`
 
 2. **DeepSeek (Free API):**
    - Go to [DeepSeek Platform](https://platform.deepseek.com/)
-   - Create an account and get an API key
+   - Create an account and get an API key (free tier available, no credit card required)
    - Add it as `DEEPSEEK_API_KEY` in `.env.local`
+   - Optionally set `DEEPSEEK_MODEL` to specify the model (default: `deepseek-chat`)
+     - **Available models**: `deepseek-chat` (primary), `deepseek-v3`, `deepseek-coder`, `deepseek-reasoner`
+   - **Note:** Free tier has generous limits (~10-50 RPM, full context length)
 
 3. **Configuration:**
    - Set `USE_AI_PARSING="true"` to enable AI parsing (default: true)
    - If both API keys are provided, the system will try Gemini first, then DeepSeek as fallback
    - AI parsing is only used when regex parsing fails or unstructured text is detected
+   - If both APIs fail, you'll get a clear error message indicating which service failed and why
 
 ### 3. Initialize Database
 

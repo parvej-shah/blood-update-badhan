@@ -15,27 +15,60 @@ export function DonorPaste() {
   const [error, setError] = useState<string | null>(null)
   const [isBulk, setIsBulk] = useState(false)
 
-  const handleParse = () => {
+  const handleParse = async () => {
     try {
       setError(null)
+      setLoading(true)
+      
       // Try bulk parsing first (sync version for client-side)
       const bulkParsed = parseBulkFormattedTextSync(text)
       
-      if (bulkParsed.length > 1) {
-        setIsBulk(true)
-        setParsedData(bulkParsed)
-      } else if (bulkParsed.length === 1) {
-        setIsBulk(false)
-        setParsedData(bulkParsed[0])
+      if (bulkParsed.length > 0) {
+        // Sync parsing succeeded
+        if (bulkParsed.length > 1) {
+          setIsBulk(true)
+          setParsedData(bulkParsed)
+        } else {
+          setIsBulk(false)
+          setParsedData(bulkParsed[0])
+        }
       } else {
-        // Fallback to single parsing
-        const parsed = parseFormattedText(text)
-        setIsBulk(false)
-        setParsedData(parsed)
+        // Sync parsing failed, try AI parsing via API
+        try {
+          const response = await fetch("/api/test/parse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          })
+          
+          const data = await response.json()
+          
+          if (response.ok && data.success && data.donors.length > 0) {
+            if (data.donors.length > 1) {
+              setIsBulk(true)
+              setParsedData(data.donors)
+            } else {
+              setIsBulk(false)
+              setParsedData(data.donors[0])
+            }
+          } else {
+            // Fallback to single parsing
+            const parsed = parseFormattedText(text)
+            setIsBulk(false)
+            setParsedData(parsed)
+          }
+        } catch (aiError: any) {
+          // AI parsing failed, try single parsing
+          const parsed = parseFormattedText(text)
+          setIsBulk(false)
+          setParsedData(parsed)
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to parse text")
       setParsedData(null)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -183,8 +216,8 @@ export function DonorPaste() {
           />
         </div>
 
-        <Button onClick={handleParse} variant="outline" className="w-full">
-          Parse & Preview
+        <Button onClick={handleParse} variant="outline" className="w-full" disabled={loading}>
+          {loading ? "Parsing..." : "Parse & Preview"}
         </Button>
 
         {error && (

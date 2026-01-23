@@ -21,8 +21,13 @@ export async function parseWithGemini(text: string): Promise<ParsedDonorData[]> 
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
+  
+  // Try multiple model names in sequence if one fails
+  // Correct free API model names: gemini-1.5-pro-latest, gemini-1.5-flash-latest, gemini-2.0-flash-exp
+  const modelNames = process.env.GEMINI_MODEL 
+    ? [process.env.GEMINI_MODEL]
+    : ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro']
+  
   const prompt = `Extract donor information from the following text and return as a JSON array. If there are multiple donors, return an array of objects. If there's only one donor, return an array with one object.
 
 Required fields:
@@ -55,68 +60,96 @@ ${text}
 
 Return the JSON array:`
 
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT)
+  let lastError: Error | null = null
+  
+  // Try each model name until one works
+  for (const modelName of modelNames) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName })
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT)
 
-    const result = await model.generateContent(prompt)
-    clearTimeout(timeoutId)
+      const result = await model.generateContent(prompt)
+      clearTimeout(timeoutId)
 
-    const response = result.response
-    const textResponse = response.text()
+      const response = result.response
+      const textResponse = response.text()
 
-    // Extract JSON from response (handle markdown code blocks)
-    let jsonText = textResponse.trim()
-    
-    // Remove markdown code blocks if present
-    if (jsonText.startsWith('```json')) {
-      jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
-    } else if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '')
-    }
-
-    // Parse JSON
-    const parsed = JSON.parse(jsonText)
-    
-    // Ensure it's an array
-    const donors = Array.isArray(parsed) ? parsed : [parsed]
-
-    // Normalize and validate each donor
-    const normalizedDonors: ParsedDonorData[] = []
-    for (const donor of donors) {
-      if (!donor.name || !donor.bloodGroup) {
-        console.warn('Skipping donor with missing name or blood group:', donor)
-        continue
+      // Extract JSON from response (handle markdown code blocks)
+      let jsonText = textResponse.trim()
+      
+      // Remove markdown code blocks if present
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '')
       }
 
-      // Normalize fields
-      const normalized: ParsedDonorData = {
-        name: String(donor.name || '').trim(),
-        bloodGroup: normalizeBloodGroup(String(donor.bloodGroup || '')),
-        batch: String(donor.batch || 'Unknown').trim(),
-        hospital: String(donor.hospital || 'Unknown').trim(),
-        phone: donor.phone ? normalizePhone(String(donor.phone)) : '',
-        date: donor.date ? normalizeDate(String(donor.date)) : '',
-        referrer: String(donor.referrer || '').trim(),
-        hallName: String(donor.hallName || '').trim(),
+      // Parse JSON
+      const parsed = JSON.parse(jsonText)
+      
+      // Ensure it's an array
+      const donors = Array.isArray(parsed) ? parsed : [parsed]
+
+      // Normalize and validate each donor
+      const normalizedDonors: ParsedDonorData[] = []
+      for (const donor of donors) {
+        if (!donor.name || !donor.bloodGroup) {
+          console.warn('Skipping donor with missing name or blood group:', donor)
+          continue
+        }
+
+        // Normalize fields
+        const normalized: ParsedDonorData = {
+          name: String(donor.name || '').trim(),
+          bloodGroup: normalizeBloodGroup(String(donor.bloodGroup || '')),
+          batch: String(donor.batch || 'Unknown').trim(),
+          hospital: String(donor.hospital || 'Unknown').trim(),
+          phone: donor.phone ? normalizePhone(String(donor.phone)) : '',
+          date: donor.date ? normalizeDate(String(donor.date)) : '',
+          referrer: String(donor.referrer || '').trim(),
+          hallName: String(donor.hallName || '').trim(),
+        }
+
+        // Validate required fields
+        if (normalized.name && normalized.bloodGroup && normalized.phone && normalized.date) {
+          normalizedDonors.push(normalized)
+        } else {
+          console.warn('Skipping donor with missing required fields:', normalized)
+        }
       }
 
-      // Validate required fields
-      if (normalized.name && normalized.bloodGroup && normalized.phone && normalized.date) {
-        normalizedDonors.push(normalized)
-      } else {
-        console.warn('Skipping donor with missing required fields:', normalized)
+      // Success! Return the parsed donors
+      console.log(`✅ Gemini model "${modelName}" worked successfully`)
+      return normalizedDonors
+    } catch (error: any) {
+      // If this is a timeout, don't try other models
+      if (error.name === 'AbortError') {
+        throw new Error('Gemini API request timed out')
       }
+      
+      // If it's a 404/model not found error, try the next model
+      const errorMessage = error.message || ''
+      if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+        console.warn(`⚠️ Model "${modelName}" not found, trying next model...`)
+        lastError = error
+        continue // Try next model
+      }
+      
+      // For other errors, throw immediately
+      console.error(`Gemini parsing error with model "${modelName}":`, error)
+      throw new Error(`Gemini parsing failed: ${errorMessage}`)
     }
-
-    return normalizedDonors
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      throw new Error('Gemini API request timed out')
-    }
-    console.error('Gemini parsing error:', error)
-    throw new Error(`Gemini parsing failed: ${error.message || 'Unknown error'}`)
   }
+  
+  // If we get here, all models failed
+  if (lastError) {
+    const errorMessage = lastError.message || 'Unknown error'
+    throw new Error(`Gemini parsing failed: All models failed. Last error: ${errorMessage}. Tried models: ${modelNames.join(', ')}`)
+  }
+  
+  throw new Error('Gemini parsing failed: No models to try')
 }
 
 /**
@@ -171,7 +204,8 @@ Return the JSON array:`
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        // Use deepseek-chat (primary), or deepseek-v3, deepseek-coder, deepseek-reasoner
+        model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
         messages: [
           {
             role: 'user',
@@ -188,7 +222,23 @@ Return the JSON array:`
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`)
+      let errorMessage = `DeepSeek API error: ${response.status}`
+      
+      // Provide user-friendly error messages
+      if (response.status === 402) {
+        errorMessage = 'DeepSeek API: Insufficient balance. Please add credits to your DeepSeek account.'
+      } else if (response.status === 401) {
+        errorMessage = 'DeepSeek API: Invalid API key. Please check your DEEPSEEK_API_KEY.'
+      } else {
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMessage = `DeepSeek API error: ${errorData.error?.message || errorText}`
+        } catch {
+          errorMessage = `DeepSeek API error: ${response.status} - ${errorText}`
+        }
+      }
+      
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
@@ -282,7 +332,14 @@ export async function parseWithAI(text: string): Promise<ParsedDonorData[]> {
       return result
     } catch (error: any) {
       console.error(`❌ DeepSeek parsing failed: ${error.message}`)
-      throw error
+      
+      // If both APIs failed, provide a comprehensive error message
+      const geminiFailed = process.env.GEMINI_API_KEY ? 'Gemini failed' : 'Gemini not configured'
+      const deepseekFailed = error.message.includes('Insufficient balance') 
+        ? 'DeepSeek has insufficient balance' 
+        : 'DeepSeek failed'
+      
+      throw new Error(`Both AI services failed: ${geminiFailed}, ${deepseekFailed}. Please check your API keys and account balances.`)
     }
   }
 
