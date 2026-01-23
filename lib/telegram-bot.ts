@@ -101,10 +101,18 @@ export async function processDonorMessage(
           }
         }
         
-        console.log(`📤 Submitting donor "${donor.name}" to ${apiUrl}/api/donors`)
+        // Normalize URL: remove trailing slashes and handle /api prefix
+        apiUrl = apiUrl.replace(/\/+$/, '') // Remove trailing slashes
+        if (apiUrl.endsWith('/api')) {
+          // If URL already ends with /api, don't add it again
+          apiUrl = apiUrl.replace(/\/api$/, '')
+        }
+        
+        const donorsEndpoint = `${apiUrl}/api/donors`
+        console.log(`📤 Submitting donor "${donor.name}" to ${donorsEndpoint}`)
         console.log(`   Data:`, JSON.stringify(donor, null, 2))
         
-        const response = await fetch(`${apiUrl}/api/donors`, {
+        const response = await fetch(donorsEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
