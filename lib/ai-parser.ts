@@ -26,7 +26,7 @@ export async function parseWithGemini(text: string): Promise<ParsedDonorData[]> 
   const prompt = `Extract donor information from the following text and return as a JSON array. If there are multiple donors, return an array of objects. If there's only one donor, return an array with one object.
 
 Required fields:
-- name: string (required)
+- name: string (required) - The donor's name
 - bloodGroup: string (must be one of: A+, A-, B+, B-, AB+, AB-, O+, O-)
 - batch: string (or "Unknown" if not found)
 - hospital: string (or "Unknown" if not found)
@@ -35,11 +35,19 @@ Required fields:
 - referrer: string (or empty string if not found)
 - hallName: string (or empty string if not found)
 
+CRITICAL RULE FOR NAME PARSING:
+- If the text starts with TWO names on the first two lines (separated by newline), the FIRST name is the REFERRER and the SECOND name is the DONOR NAME
+- Examples:
+  * "Tanvir Ahmed\nBadhon\n..." → referrer: "Tanvir Ahmed", name: "Badhon"
+  * "Saifullah\nArafat\n..." → referrer: "Saifullah", name: "Arafat"
+  * "Abdur\nSojib\n..." → referrer: "Abdur", name: "Sojib"
+- If there's only one name at the top or names are not in this format, treat the first name as the donor name and referrer as empty/unknown
+
 Rules:
-1. Extract blood group in any format (B(+ve), B(positive), B+ve, A POSITIVE, etc.) and normalize to A+, A-, B+, B-, AB+, AB-, O+, O-
-2. Extract phone number in any format and normalize to 01XXXXXXXXX format
-3. Extract date in any format (DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, etc.) and format as DD-MM-YYYY
-4. If a field is missing, use the default values specified above
+1. Extract blood group in any format (B(+ve), B(positive), B+ve, AB(+)ve, A POSITIVE, etc.) and normalize to A+, A-, B+, B-, AB+, AB-, O+, O-
+2. Extract phone number in any format and normalize to 01XXXXXXXXX format (remove +880 prefix if present)
+3. Extract date in any format (DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, 4/1/26, etc.) and format as DD-MM-YYYY
+4. If a field is missing, use the default values: batch="Unknown", hospital="Unknown", referrer="", hallName=""
 5. Return ONLY valid JSON array, no additional text or markdown
 
 Text to parse:
@@ -123,7 +131,7 @@ export async function parseWithDeepSeek(text: string): Promise<ParsedDonorData[]
   const prompt = `Extract donor information from the following text and return as a JSON array. If there are multiple donors, return an array of objects. If there's only one donor, return an array with one object.
 
 Required fields:
-- name: string (required)
+- name: string (required) - The donor's name
 - bloodGroup: string (must be one of: A+, A-, B+, B-, AB+, AB-, O+, O-)
 - batch: string (or "Unknown" if not found)
 - hospital: string (or "Unknown" if not found)
@@ -132,11 +140,19 @@ Required fields:
 - referrer: string (or empty string if not found)
 - hallName: string (or empty string if not found)
 
+CRITICAL RULE FOR NAME PARSING:
+- If the text starts with TWO names on the first two lines (separated by newline), the FIRST name is the REFERRER and the SECOND name is the DONOR NAME
+- Examples:
+  * "Tanvir Ahmed\nBadhon\n..." → referrer: "Tanvir Ahmed", name: "Badhon"
+  * "Saifullah\nArafat\n..." → referrer: "Saifullah", name: "Arafat"
+  * "Abdur\nSojib\n..." → referrer: "Abdur", name: "Sojib"
+- If there's only one name at the top or names are not in this format, treat the first name as the donor name and referrer as empty/unknown
+
 Rules:
-1. Extract blood group in any format (B(+ve), B(positive), B+ve, A POSITIVE, etc.) and normalize to A+, A-, B+, B-, AB+, AB-, O+, O-
-2. Extract phone number in any format and normalize to 01XXXXXXXXX format
-3. Extract date in any format (DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, etc.) and format as DD-MM-YYYY
-4. If a field is missing, use the default values specified above
+1. Extract blood group in any format (B(+ve), B(positive), B+ve, AB(+)ve, A POSITIVE, etc.) and normalize to A+, A-, B+, B-, AB+, AB-, O+, O-
+2. Extract phone number in any format and normalize to 01XXXXXXXXX format (remove +880 prefix if present)
+3. Extract date in any format (DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, 4/1/26, etc.) and format as DD-MM-YYYY
+4. If a field is missing, use the default values: batch="Unknown", hospital="Unknown", referrer="", hallName=""
 5. Return ONLY valid JSON array, no additional text or markdown
 
 Text to parse:
@@ -272,4 +288,5 @@ export async function parseWithAI(text: string): Promise<ParsedDonorData[]> {
 
   throw new Error('No AI API keys configured (GEMINI_API_KEY or DEEPSEEK_API_KEY required)')
 }
+
 
