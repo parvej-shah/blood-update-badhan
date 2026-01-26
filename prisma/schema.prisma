@@ -30,3 +30,52 @@ model Donor {
   @@map("Donor")
 }
 
+model ParsingExample {
+  id            String   @id @default(cuid())
+  rawText       String   @db.Text
+  expectedOutput Json     // Expected parsed output
+  parsedOutput   Json?    // Actual parsed output (for comparison)
+  confidence     Float?
+  isCorrect      Boolean?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([createdAt])
+  @@map("ParsingExample")
+}
+
+model ParsingPattern {
+  id          String   @id @default(cuid())
+  patternType String   // regex, positional, keyword
+  pattern     String   @db.Text
+  field       String   // name, bloodGroup, phone, date, batch, hospital, referrer, hallName
+  confidence  Float    @default(0.5)
+  usageCount  Int      @default(0)
+  successRate Float    @default(0.0)
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([field])
+  @@index([patternType])
+  @@index([confidence])
+  @@index([isEnabled])
+  @@map("ParsingPattern")
+}
+
+model UserFeedback {
+  id            String   @id @default(cuid())
+  rawText       String   @db.Text
+  parsedOutput  Json
+  isCorrect     Boolean
+  comment       String?  @db.Text
+  userId        String?  // Optional tracking
+  reviewedByAdmin Boolean @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([reviewedByAdmin])
+  @@index([createdAt])
+  @@map("UserFeedback")
+}
+

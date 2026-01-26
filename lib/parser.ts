@@ -1,5 +1,5 @@
 import { normalizeBloodGroup } from './validation'
-import { parseWithAI, isAIParsingEnabled } from './ai-parser'
+import { parseWithCustomModel, parseBulkWithCustomModel } from './custom-parser'
 
 export interface ParsedDonorData {
   name: string
@@ -124,13 +124,12 @@ export function parseFormattedText(text: string): ParsedDonorData {
 }
 
 // Parse bulk text with multiple donor entries
-// Entries are separated by double newlines or lines starting with "Donor Name:"
-// Uses AI parsing as fallback when regex parsing fails or unstructured text is detected
+// Uses custom parser for all parsing
 export async function parseBulkFormattedText(text: string): Promise<ParsedDonorData[]> {
-  // First, try regex parsing
+  // First, try structured format parsing
   const entries: string[] = []
   
-  // First, try splitting by double newlines
+  // Try splitting by double newlines
   const doubleNewlineSplit = text.split(/\n\s*\n/)
   
   if (doubleNewlineSplit.length > 1) {
@@ -155,39 +154,56 @@ export async function parseBulkFormattedText(text: string): Promise<ParsedDonorD
     }
   }
   
-  // Parse each entry with regex first
+  // Check if text has structured format (contains "Donor Name:" labels)
+  const hasStructuredFormat = /Donor\s+Name\s*:/i.test(text)
+  
+  // Try structured parsing first only if it has structured format
   const parsedEntries: ParsedDonorData[] = []
   let hasValidEntries = false
   
-  for (const entry of entries) {
-    if (entry.trim()) {
-      try {
-        const parsed = parseFormattedText(entry)
-        // Only add if it has at least name and blood group
-        if (parsed.name && parsed.bloodGroup) {
-          parsedEntries.push(parsed)
-          hasValidEntries = true
+  if (hasStructuredFormat) {
+    for (const entry of entries) {
+      if (entry.trim()) {
+        try {
+          const parsed = parseFormattedText(entry)
+          // Only add if it has at least name and blood group
+          if (parsed.name && parsed.bloodGroup) {
+            parsedEntries.push(parsed)
+            hasValidEntries = true
+          }
+        } catch (error) {
+          // Skip invalid entries for now
+          console.warn('Failed to parse entry with structured format:', error)
         }
-      } catch (error) {
-        // Skip invalid entries for now
-        console.warn('Failed to parse entry with regex:', error)
       }
     }
   }
   
-  // If regex parsing failed or detected unstructured text, try AI parsing
-  if (!hasValidEntries || (isAIParsingEnabled() && isUnstructuredText(text))) {
+  // If structured parsing failed or detected unstructured text, use custom parser
+  if (!hasValidEntries || !hasStructuredFormat || isUnstructuredText(text)) {
     try {
-      console.log('🤖 Attempting AI parsing for unstructured text...')
-      const aiParsed = await parseWithAI(text)
-      if (aiParsed.length > 0) {
-        console.log(`✅ AI parsing successful: ${aiParsed.length} donor(s) extracted`)
-        return aiParsed
+      console.log('🔍 Using custom parser for unstructured text...')
+      const customParsed = parseBulkWithCustomModel(text)
+      console.log(`📊 Custom parser returned ${customParsed.length} result(s)`)
+      if (customParsed.length > 0) {
+        console.log(`✅ Custom parsing successful: ${customParsed.length} donor(s) extracted`)
+        // Convert ParsingResult to ParsedDonorData
+        return customParsed.map(result => ({
+          name: result.name,
+          bloodGroup: result.bloodGroup,
+          batch: result.batch,
+          hospital: result.hospital,
+          phone: result.phone,
+          date: result.date,
+          referrer: result.referrer,
+          hallName: result.hallName,
+        }))
+      } else {
+        console.warn('⚠️ Custom parser returned 0 results')
       }
     } catch (error: any) {
-      console.warn(`⚠️ AI parsing failed: ${error.message}`)
-      // If AI parsing fails, return regex results (even if empty)
-      // This allows the error to be handled upstream
+      console.error(`❌ Custom parsing failed: ${error.message}`, error.stack)
+      // If custom parsing fails, return structured results (even if empty)
     }
   }
   

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseBulkFormattedText } from '@/lib/parser'
 
 /**
- * Test endpoint for AI parsing
+ * Test endpoint for parsing (uses custom parser)
  * POST /api/test/parse
  * Body: { text: string }
  */
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('🧪 Testing AI parsing with text:', text.substring(0, 100) + '...')
+    console.log('🧪 Testing parsing with text:', text.substring(0, 100) + '...')
     
     const parsed = await parseBulkFormattedText(text)
     
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       donors: parsed,
     })
   } catch (error: any) {
-    console.error('❌ AI parsing test error:', error)
+    console.error('❌ Parsing test error:', error)
     return NextResponse.json(
       { 
         error: error.message || 'Failed to parse text',

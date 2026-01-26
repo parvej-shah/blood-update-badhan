@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { parseFormattedText, parseBulkFormattedTextSync } from "@/lib/parser"
+import { parseFormattedText, parseBulkFormattedText } from "@/lib/parser"
 import { Badge } from "@/components/ui/badge"
+import { ParsingFeedbackDialog } from "@/components/ParsingFeedbackDialog"
 
 export function DonorPaste() {
   const [text, setText] = useState("")
@@ -14,55 +15,27 @@ export function DonorPaste() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isBulk, setIsBulk] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   const handleParse = async () => {
     try {
       setError(null)
       setLoading(true)
       
-      // Try bulk parsing first (sync version for client-side)
-      const bulkParsed = parseBulkFormattedTextSync(text)
+      // Use async parsing (supports custom parser)
+      const parsed = await parseBulkFormattedText(text)
       
-      if (bulkParsed.length > 0) {
-        // Sync parsing succeeded
-        if (bulkParsed.length > 1) {
+      if (parsed.length > 0) {
+        if (parsed.length > 1) {
           setIsBulk(true)
-          setParsedData(bulkParsed)
+          setParsedData(parsed)
         } else {
           setIsBulk(false)
-          setParsedData(bulkParsed[0])
+          setParsedData(parsed[0])
         }
       } else {
-        // Sync parsing failed, try AI parsing via API
-        try {
-          const response = await fetch("/api/test/parse", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text }),
-          })
-          
-          const data = await response.json()
-          
-          if (response.ok && data.success && data.donors.length > 0) {
-            if (data.donors.length > 1) {
-              setIsBulk(true)
-              setParsedData(data.donors)
-            } else {
-              setIsBulk(false)
-              setParsedData(data.donors[0])
-            }
-          } else {
-            // Fallback to single parsing
-            const parsed = parseFormattedText(text)
-            setIsBulk(false)
-            setParsedData(parsed)
-          }
-        } catch (aiError: any) {
-          // AI parsing failed, try single parsing
-          const parsed = parseFormattedText(text)
-          setIsBulk(false)
-          setParsedData(parsed)
-        }
+        setError("Could not parse the text. Please check the format.")
+        setParsedData(null)
       }
     } catch (err: any) {
       setError(err.message || "Failed to parse text")
@@ -141,6 +114,7 @@ export function DonorPaste() {
         setText("")
         setParsedData(null)
         setIsBulk(false)
+        setShowFeedback(false)
       }
 
       if (window.toast) {
@@ -229,9 +203,19 @@ export function DonorPaste() {
         {parsedData && (
           <Card>
             <CardHeader>
-              <CardTitle>
-                Preview {isBulk && Array.isArray(parsedData) && `(${parsedData.length} donors)`}
-              </CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>
+                  Preview {isBulk && Array.isArray(parsedData) && `(${parsedData.length} donors)`}
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFeedback(true)}
+                  className="text-xs"
+                >
+                  Provide Feedback
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {isBulk && Array.isArray(parsedData) ? (
@@ -307,6 +291,19 @@ export function DonorPaste() {
               </Button>
             </CardContent>
           </Card>
+        )}
+        
+        {/* Feedback Dialog */}
+        {parsedData && (
+          <ParsingFeedbackDialog
+            open={showFeedback}
+            onOpenChange={setShowFeedback}
+            rawText={text}
+            parsedData={parsedData}
+            onFeedbackSubmitted={() => {
+              setShowFeedback(false)
+            }}
+          />
         )}
       </CardContent>
     </Card>
