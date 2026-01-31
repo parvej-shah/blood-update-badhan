@@ -128,7 +128,7 @@ export default function ReportsPage() {
             <div className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
               <BarChart3 className="h-5 w-5 text-white" />
             </div>
-            <div>
+      <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                 Reports
               </h1>
@@ -146,7 +146,7 @@ export default function ReportsPage() {
       <div className="container mx-auto px-4 py-6 pb-8 space-y-8">
         {/* Filters Card */}
         <Card className="border-0 shadow-lg">
-          <CardHeader>
+        <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
               Report Filters
@@ -154,17 +154,17 @@ export default function ReportsPage() {
             <CardDescription>
               Select date range and blood group to generate a customized report
             </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2 space-y-2">
                 <Label className="text-sm font-medium">Date Range</Label>
                 <DateRangePicker
                   dateFrom={filters.dateFrom}
                   dateTo={filters.dateTo}
                   onDateChange={(from, to) => setFilters({ ...filters, dateFrom: from, dateTo: to })}
-                />
-              </div>
+              />
+            </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Blood Group</Label>
               <Select

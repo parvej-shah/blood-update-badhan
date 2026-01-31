@@ -53,7 +53,6 @@ export function detectPotentiallyDonorRelated(text: string): boolean {
     /mobile/i,
     /donor/i,
     /batch/i,
-    /hospital/i,
     /referrer/i,
     /hall/i,
     /\b(A\+|A-|B\+|B-|AB\+|AB-|O\+|O-)\b/i, // Blood groups
@@ -340,32 +339,34 @@ export function getFormatInstructions(): string {
   return `📋 Please use the following format for donor information:
 
 \`\`\`
-Donor Name: John Doe
-Blood Group: B+ (or B(+ve), B(positive), etc.)
-Batch: 2024
-Hospital: City Hospital
-Phone: 01712345678
-Date: 15-01-2025 (or 15.01.2025 or 1/15/2025)
-Referrer: Jane Smith
-Hall Name: Main Hall
+Parvej Shah
+B+
+IIT 23-24
+01516538054
+25-08-25
+Hasanur Rahman
+AEH Hall
 \`\`\`
+
+**Format (line by line):**
+1. Donor Name
+2. Blood Group (B+, A-, O+, etc.)
+3. Batch (e.g., IIT 23-24, Math 2024)
+4. Phone (01XXXXXXXXX)
+5. Date (DD-MM-YY or DD-MM-YYYY)
+6. Referrer Name (optional)
+7. Hall Name (optional)
 
 **Notes:**
-• Blood Group: Supports formats like B(+ve), B(positive), B+ve, A POSITIVE
+• Blood Group: Supports B+, B(+ve), B(positive), etc.
 • Date: Supports DD-MM-YYYY, DD.MM.YYYY, M/D/YYYY formats
 • Phone: Must be in Bangladesh format (01XXXXXXXXX or +8801XXXXXXXXX)
-• You can submit multiple donors by separating entries with blank lines
+• You can also use comma-separated format
+• Multiple donors: separate with blank lines
 
-**Example:**
+**Comma format:**
 \`\`\`
-Donor Name: Ahmed Rahman
-Blood Group: O+
-Batch: 2023
-Hospital: Dhaka Medical
-Phone: 01712345678
-Date: 20-01-2025
-Referrer: Dr. Khan
-Hall Name: Central Hall
+Parvej Shah, B+, IIT 23-24, 01516538054, 25-08-25, Hasanur Rahman, AEH Hall
 \`\`\``
 }
 

@@ -42,19 +42,19 @@ export function Navigation() {
             {navItems.map((item) => {
               const Icon = item.icon
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                    pathname === item.href
+                  pathname === item.href
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
                   <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
+                {item.label}
+              </Link>
               )
             })}
           </div>

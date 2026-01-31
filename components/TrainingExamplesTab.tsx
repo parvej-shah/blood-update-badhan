@@ -46,7 +46,6 @@ export function TrainingExamplesTab() {
       phone: "",
       date: "",
       batch: "",
-      hospital: "",
       referrer: "",
       hallName: "",
     } as ParsedDonorData,
@@ -134,7 +133,6 @@ export function TrainingExamplesTab() {
             phone: "",
             date: "",
             batch: "",
-            hospital: "",
             referrer: "",
             hallName: "",
           },
@@ -420,22 +418,6 @@ export function TrainingExamplesTab() {
                       expectedOutput: {
                         ...formData.expectedOutput,
                         batch: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="hospital">Hospital</Label>
-                <Input
-                  id="hospital"
-                  value={formData.expectedOutput.hospital || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      expectedOutput: {
-                        ...formData.expectedOutput,
-                        hospital: e.target.value,
                       },
                     })
                   }

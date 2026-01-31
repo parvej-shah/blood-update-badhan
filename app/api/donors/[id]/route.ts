@@ -115,7 +115,6 @@ export async function PUT(
       name: (data.name || '').trim(),
       bloodGroup: bloodGroup,
       batch: (data.batch && data.batch.trim()) ? data.batch.trim() : 'Unknown',
-      hospital: (data.hospital && data.hospital.trim()) ? data.hospital.trim() : 'Unknown',
       phone: normalizedPhone,
       date: normalizedDate,
       referrer: normalizedReferrer,

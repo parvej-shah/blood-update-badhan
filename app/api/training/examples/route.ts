@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // Calculate confidence (compare parsed vs expected)
     let matches = 0
     let totalFields = 0
-    const fields: (keyof ParsedDonorData)[] = ['name', 'bloodGroup', 'phone', 'date', 'batch', 'hospital', 'referrer', 'hallName']
+    const fields: (keyof ParsedDonorData)[] = ['name', 'bloodGroup', 'phone', 'date', 'batch', 'referrer', 'hallName']
     
     for (const field of fields) {
       totalFields++

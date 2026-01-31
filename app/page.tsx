@@ -23,7 +23,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                 <Droplets className="h-5 w-5 text-white" />
               </div>
-              <div>
+      <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                   Dashboard
                 </h1>
@@ -58,7 +58,7 @@ export default function DashboardPage() {
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Overview Statistics</h2>
           </div>
-          <StatsCards />
+      <StatsCards />
         </section>
 
         {/* Donor Records Section */}
@@ -69,7 +69,7 @@ export default function DashboardPage() {
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Donor Records</h2>
           </div>
-          <DonorTable />
+      <DonorTable />
         </section>
 
         {/* Charts Section */}
@@ -80,7 +80,7 @@ export default function DashboardPage() {
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Donation Trends</h2>
           </div>
-          <MonthlyChart />
+      <MonthlyChart />
         </section>
       </div>
 

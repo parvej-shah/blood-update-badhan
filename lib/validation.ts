@@ -62,7 +62,6 @@ export const donorSchema = z.object({
       }
     ),
   batch: z.string().optional(),
-  hospital: z.string().optional(),
   phone: z
     .string()
     .min(1, 'Phone number is required')

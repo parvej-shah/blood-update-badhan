@@ -15,7 +15,6 @@ model Donor {
   name        String
   bloodGroup  String
   batch       String?
-  hospital    String?
   phone       String
   date        String
   referrer    String?
@@ -48,7 +47,7 @@ model ParsingPattern {
   id          String   @id @default(cuid())
   patternType String   // regex, positional, keyword
   pattern     String   @db.Text
-  field       String   // name, bloodGroup, phone, date, batch, hospital, referrer, hallName
+  field       String   // name, bloodGroup, phone, date, batch, referrer, hallName
   confidence  Float    @default(0.5)
   usageCount  Int      @default(0)
   successRate Float    @default(0.0)

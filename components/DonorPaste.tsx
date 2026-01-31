@@ -51,7 +51,6 @@ function formatDonorData(donor: any) {
   return {
     ...donor,
     name: capitalizeWords(donor.name),
-    hospital: capitalizeWords(donor.hospital),
     referrer: capitalizeWords(donor.referrer),
     hallName: capitalizeWords(donor.hallName),
     // Batch and blood group stay as-is
@@ -160,7 +159,6 @@ export function DonorPaste() {
           if (donor.name) parts.push(`Donor Name: ${donor.name}`)
           if (donor.bloodGroup) parts.push(`Blood Group: ${donor.bloodGroup}`)
           if (donor.batch) parts.push(`Batch: ${donor.batch}`)
-          if (donor.hospital) parts.push(`Hospital: ${donor.hospital}`)
           if (donor.phone) parts.push(`Phone: ${donor.phone}`)
           if (donor.date) parts.push(`Date: ${donor.date}`)
           if (donor.referrer) parts.push(`Referrer: ${donor.referrer}`)
@@ -226,7 +224,6 @@ export function DonorPaste() {
             <div>Parvej Shah</div>
             <div>B+</div>
             <div>IIT 23-24</div>
-            <div>DMC</div>
             <div>01516538054</div>
             <div>25-08-25</div>
             <div>Hasanur Rahman</div>
@@ -337,13 +334,9 @@ export function DonorPaste() {
                           <p className="text-xs text-muted-foreground">Date</p>
                           <p className="font-medium">{donor.date || "N/A"}</p>
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 col-span-2">
                           <p className="text-xs text-muted-foreground">Batch</p>
                           <p className="truncate">{donor.batch || "Unknown"}</p>
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-xs text-muted-foreground">Hospital</p>
-                          <p className="truncate">{donor.hospital || "Unknown"}</p>
                         </div>
                       </div>
                     </div>
@@ -382,15 +375,9 @@ export function DonorPaste() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground font-medium">Batch</p>
-                        <p className="text-sm">{parsedData.batch || "Unknown"}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground font-medium">Hospital</p>
-                        <p className="text-sm truncate">{parsedData.hospital || "Unknown"}</p>
-                      </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Batch</p>
+                      <p className="text-sm">{parsedData.batch || "Unknown"}</p>
                     </div>
 
                     {(parsedData.referrer || parsedData.hallName) && (

@@ -5,7 +5,6 @@ export interface ParsedDonorData {
   name: string
   bloodGroup: string
   batch: string
-  hospital: string
   phone: string
   date: string
   referrer: string
@@ -107,7 +106,6 @@ export function parseFormattedText(text: string): ParsedDonorData {
 
   // Set defaults
   extracted.batch = extracted.batch || 'Unknown'
-  extracted.hospital = extracted.hospital || 'Unknown'
   extracted.referrer = extracted.referrer || ''
   extracted.hallName = extracted.hallName || ''
 
@@ -115,7 +113,6 @@ export function parseFormattedText(text: string): ParsedDonorData {
     name: extracted.name || '',
     bloodGroup: extracted.bloodGroup || '',
     batch: extracted.batch || 'Unknown',
-    hospital: extracted.hospital || 'Unknown',
     phone: extracted.phone || '',
     date: extracted.date || '',
     referrer: extracted.referrer || '',
@@ -192,7 +189,6 @@ export async function parseBulkFormattedText(text: string): Promise<ParsedDonorD
           name: result.name,
           bloodGroup: result.bloodGroup,
           batch: result.batch,
-          hospital: result.hospital,
           phone: result.phone,
           date: result.date,
           referrer: result.referrer,

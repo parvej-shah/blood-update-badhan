@@ -63,7 +63,7 @@ function extractNames(text: string): { donorName: string; referrer: string } {
       // Not a pure blood group (but could be name + blood group)
       if (/^[ABO]+[+-]?[()]*[ve]*$/i.test(str)) return false
       // Not "Mobile:", "Date:", "Managed by", etc.
-      if (/^(Mobile|Date|Managed|Batch|Hospital|Phone|Hall|Referrer)\s*:/i.test(str)) return false
+      if (/^(Mobile|Date|Managed|Batch|Phone|Hall|Referrer)\s*:/i.test(str)) return false
       // Has letters and reasonable length
       const result = /^[A-Za-z\u0080-\uFFFF\s\.]{2,50}$/.test(str)
       console.log(`  ✓ isNamePattern("${str}"): ${result}`)
@@ -182,7 +182,7 @@ function extractNames(text: string): { donorName: string; referrer: string } {
     if (/^[A-Za-z\u0080-\uFFFF\s\.]{2,50}$/.test(firstLine) && 
         !/^\+?880?1[3-9]\d{8,9}$/.test(firstLine.replace(/[\s-]/g, '')) &&
         !/^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/.test(firstLine) &&
-        !/^(Mobile|Date|Managed|Batch|Hospital|Phone|Hall|Referrer)\s*:/i.test(firstLine)) {
+        !/^(Mobile|Date|Managed|Batch|Phone|Hall|Referrer)\s*:/i.test(firstLine)) {
       return {
         referrer: '',
         donorName: firstLine.trim()
@@ -414,33 +414,6 @@ function extractHall(text: string): string {
   return ''
 }
 
-/**
- * Extract hospital from text
- */
-function extractHospital(text: string): string {
-  // Hospital patterns
-  const hospitalKeywords = [
-    /(DMC|PG\s+hospital|PG\b|BRB\s+hospital|CMH|BUET)/gi,
-    /(hospital|Hospital)/gi,
-  ]
-  
-  for (const pattern of hospitalKeywords) {
-    const matches = text.match(pattern)
-    if (matches && matches.length > 0) {
-      return matches[0].trim()
-    }
-  }
-  
-  // Location names that might be hospitals
-  const locations = ['Dhanmondi', 'Komlapur', 'Chankarpul']
-  for (const loc of locations) {
-    if (text.includes(loc)) {
-      return loc
-    }
-  }
-  
-  return ''
-}
 
 /**
  * Extract referrer from text (beyond two-name rule)
@@ -470,9 +443,242 @@ function extractReferrer(text: string, alreadyFound: string): string {
 }
 
 /**
+ * Parse sequential format (comma-separated OR line-by-line)
+ * Intelligently detects field types regardless of position
+ * Handles: Name+BloodGroup on same line, missing batch, variable referrer position
+ */
+function parseSequentialFormat(text: string): ParsingResult | null {
+  // Split by comma or newline to get parts
+  let parts: string[]
+  
+  if (text.includes(',')) {
+    // Comma-separated format
+    parts = text.split(',').map(p => p.trim()).filter(p => p.length > 0)
+    console.log('🔍 Trying comma-separated format. Parts:', parts)
+  } else {
+    // Line-by-line format
+    parts = text.split('\n').map(p => p.trim()).filter(p => p.length > 0)
+    console.log('🔍 Trying line-by-line format. Parts:', parts)
+  }
+  
+  // Need at least 4 parts (name, blood group, phone, date)
+  if (parts.length < 4) return null
+  
+  const result: ParsingResult = {
+    name: '',
+    bloodGroup: '',
+    batch: 'Unknown',
+    phone: '',
+    date: '',
+    referrer: '',
+    hallName: '',
+    confidence: 0.0
+  }
+  
+  const used: boolean[] = new Array(parts.length).fill(false)
+  const nameLikeParts: number[] = []
+  
+  // Helper: Check if part looks like a name
+  const isNameLike = (str: string): boolean => {
+    return /^[A-Za-z\u0080-\uFFFF\s\.]{2,50}$/.test(str) &&
+           !/^\+?880?1[3-9]\d{8,9}$/.test(str.replace(/[\s-]/g, '')) &&
+           !/^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/.test(str) &&
+           !/^[ABO]+[+-]?[()ve]*$/i.test(str)
+  }
+  
+  // Helper: Check if part looks like a batch
+  const isBatchLike = (str: string): boolean => {
+    // Batch patterns:
+    // - Year range: "23-24", "2023-24", "2023-2024"
+    // - Full year: "2024" (4 digits)
+    // - Department + year: "IIT 23-24", "Math 2024", "PHR 23-24"
+    return /\d{2,4}[\s-]\d{2,4}/.test(str) || // "23-24" or "2023-24"
+           /^\d{4}$/.test(str) || // "2024" (exactly 4 digits)
+           /(IIT|Math|Physics|Chemistry|Pharmacy|PHR|SWE|Botany|Zoology|Statistics|Ocn|CSE|EEE|Applied\s*Math|A\.?\s*Math)\s*\d{2,4}/i.test(str) // Dept + year
+  }
+  
+  
+  // Helper: Check if part looks like a hall
+  const isHallLike = (str: string): boolean => {
+    return /Hall|AEH|Amar\s+Ekushey/i.test(str)
+  }
+  
+  // Pass 1: Extract definite fields
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    
+    // Check for Name + Blood Group combined (e.g., "Parvej Shah B+")
+    const nameBgMatch = part.match(/^(.+?)\s+([ABO]+[+-]?[()ve]*)$/i)
+    if (nameBgMatch && !used[i]) {
+      const possibleName = nameBgMatch[1].trim()
+      const possibleBg = nameBgMatch[2].trim()
+      if (isNameLike(possibleName) && extractBloodGroup(possibleBg)) {
+        result.name = possibleName
+        result.bloodGroup = extractBloodGroup(possibleBg) || ''
+        used[i] = true
+        console.log(`✓ Found name+BG combo at ${i}: ${possibleName} | ${result.bloodGroup}`)
+        continue
+      }
+    }
+    
+    // Blood Group (standalone)
+    if (!result.bloodGroup && !used[i]) {
+      const bg = extractBloodGroup(part)
+      if (bg) {
+        result.bloodGroup = bg
+        used[i] = true
+        console.log(`✓ Found blood group at ${i}: ${bg}`)
+        continue
+      }
+    }
+    
+    // Phone
+    if (!result.phone && !used[i]) {
+      const phone = extractPhone(part)
+      if (phone) {
+        result.phone = phone
+        used[i] = true
+        console.log(`✓ Found phone at ${i}: ${phone}`)
+        continue
+      }
+    }
+    
+    // Date
+    if (!result.date && !used[i]) {
+      const date = extractDate(part)
+      if (date) {
+        result.date = date
+        used[i] = true
+        console.log(`✓ Found date at ${i}: ${date}`)
+        continue
+      }
+    }
+    
+    // Batch (specific patterns)
+    if (result.batch === 'Unknown' && !used[i] && isBatchLike(part)) {
+      result.batch = part
+      used[i] = true
+      console.log(`✓ Found batch at ${i}: ${part}`)
+      continue
+    }
+    
+    
+    // Hall (specific patterns)
+    if (!result.hallName && !used[i] && isHallLike(part)) {
+      result.hallName = part
+      used[i] = true
+      console.log(`✓ Found hall at ${i}: ${part}`)
+      continue
+    }
+    
+    // Collect name-like parts for later processing
+    if (!used[i] && isNameLike(part)) {
+      nameLikeParts.push(i)
+    }
+  }
+  
+  // Pass 2: Process name-like parts
+  // If we have 2+ name-like parts: first is referrer, second is donor name
+  // If we have 1 name-like part: it's the donor name
+  if (!result.name && nameLikeParts.length > 0) {
+    if (nameLikeParts.length >= 2) {
+      // Two names: first = referrer, second = donor
+      result.referrer = parts[nameLikeParts[0]]
+      used[nameLikeParts[0]] = true
+      console.log(`✓ Found referrer (first name) at ${nameLikeParts[0]}: ${result.referrer}`)
+      
+      result.name = parts[nameLikeParts[1]]
+      used[nameLikeParts[1]] = true
+      console.log(`✓ Found donor name (second name) at ${nameLikeParts[1]}: ${result.name}`)
+      
+      nameLikeParts.splice(0, 2)
+    } else {
+      // Only one name: it's the donor
+      result.name = parts[nameLikeParts[0]]
+      used[nameLikeParts[0]] = true
+      console.log(`✓ Found name at ${nameLikeParts[0]}: ${result.name}`)
+      nameLikeParts.shift()
+    }
+  }
+  
+  // Pass 3: Assign remaining unused parts
+  for (let i = 0; i < parts.length; i++) {
+    if (used[i]) continue
+    
+    const part = parts[i]
+    
+    // Skip simple numbers (1-100) - these are NOT batch (like "14 th time")
+    const isSimpleNumber = /^\d{1,2}$/.test(part) && parseInt(part) <= 100
+    if (isSimpleNumber) {
+      console.log(`⚠ Skipping simple number at ${i}: ${part} (not a batch)`)
+      continue
+    }
+    
+    // If we still don't have batch and this could be batch (but not a simple number)
+    if (result.batch === 'Unknown' && isBatchLike(part)) {
+      result.batch = part
+      used[i] = true
+      console.log(`✓ Assigned batch at ${i}: ${part}`)
+      continue
+    }
+    
+    
+    // If we still don't have hall
+    if (!result.hallName) {
+      result.hallName = part
+      used[i] = true
+      console.log(`✓ Assigned hall at ${i}: ${part}`)
+      continue
+    }
+  }
+  
+  // Calculate confidence
+  let confidenceScore = 0.0
+  let maxScore = 0.0
+  
+  if (result.name) {
+    maxScore += 1.0
+    confidenceScore += 1.0
+  }
+  if (result.bloodGroup) {
+    maxScore += 1.0
+    confidenceScore += 1.0
+  }
+  if (result.phone) {
+    maxScore += 1.0
+    confidenceScore += 1.0
+  }
+  if (result.date) {
+    maxScore += 1.0
+    confidenceScore += 1.0
+  }
+  if (result.batch && result.batch !== 'Unknown') {
+    maxScore += 0.5
+    confidenceScore += 0.5
+  }
+  
+  result.confidence = maxScore > 0 ? confidenceScore / maxScore : 0.0
+  
+  // Only return if we have minimum required fields
+  if (result.name && result.bloodGroup && result.phone && result.date) {
+    console.log('✅ Sequential format parsed successfully:', result)
+    return result
+  }
+  
+  console.log('❌ Sequential format failed validation')
+  return null
+}
+
+/**
  * Main custom parser function
  */
 export function parseWithCustomModel(text: string): ParsingResult {
+  // Try sequential format first (comma-separated or line-by-line)
+  const sequentialParsed = parseSequentialFormat(text)
+  if (sequentialParsed) {
+    return sequentialParsed
+  }
+  
   // Clean text first (preserves newlines for line-by-line processing)
   const cleanedText = cleanText(text)
   console.log('🧹 Cleaned text (full block):', cleanedText)
@@ -483,7 +689,6 @@ export function parseWithCustomModel(text: string): ParsingResult {
     name: '',
     bloodGroup: '',
     batch: 'Unknown',
-    hospital: 'Unknown',
     phone: '',
     date: '',
     referrer: '',
@@ -517,7 +722,7 @@ export function parseWithCustomModel(text: string): ParsingResult {
       if (!result.name && 
           !/^\+?880?1[3-9]\d{8,9}$/.test(firstLine.replace(/[\s-]/g, '')) &&
           !/^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/.test(firstLine) &&
-          !/^(Mobile|Date|Managed|Batch|Hospital|Phone|Hall|Referrer)\s*:/i.test(firstLine) &&
+          !/^(Mobile|Date|Managed|Batch|Phone|Hall|Referrer)\s*:/i.test(firstLine) &&
           /^[A-Za-z\u0080-\uFFFF\s\.]{2,50}$/.test(firstLine)) {
         result.name = firstLine.trim()
       }
@@ -531,7 +736,6 @@ export function parseWithCustomModel(text: string): ParsingResult {
   result.phone = extractPhone(cleanedText)
   result.date = extractDate(cleanedText)
   result.batch = extractBatch(cleanedText) || 'Unknown'
-  result.hospital = extractHospital(cleanedText) || 'Unknown'
   result.hallName = extractHall(cleanedText)
   
   // Extract referrer (if not already found from two-name rule)
@@ -560,10 +764,6 @@ export function parseWithCustomModel(text: string): ParsingResult {
     confidenceScore += 1.0
   }
   if (result.batch && result.batch !== 'Unknown') {
-    maxScore += 0.5
-    confidenceScore += 0.5
-  }
-  if (result.hospital && result.hospital !== 'Unknown') {
     maxScore += 0.5
     confidenceScore += 0.5
   }

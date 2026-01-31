@@ -82,25 +82,6 @@ export async function POST(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10)
 
-    // Get top 5 hospitals
-    const topHospitals = await prisma.donor.groupBy({
-      by: ['hospital'],
-      where: {
-        ...where,
-        hospital: {
-          not: null,
-        },
-      },
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
-      take: 5,
-    })
 
     // Get daily trends
     const allDonors = await prisma.donor.findMany({
@@ -124,10 +105,6 @@ export async function POST(request: NextRequest) {
       totalDonations,
       bloodGroupBreakdown: bloodGroupMap,
       topReferrers: topReferrers, // Already in correct format { referrer, count }
-      topHospitals: topHospitals.map((item) => ({
-        hospital: item.hospital,
-        count: item._count.id,
-      })),
       dailyTrends: dailyTrendsArray,
     })
   } catch (error) {

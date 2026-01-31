@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
       name: (data.name || '').trim(),
       bloodGroup: bloodGroup,
       batch: (data.batch && data.batch.trim()) ? data.batch.trim() : 'Unknown',
-      hospital: (data.hospital && data.hospital.trim()) ? data.hospital.trim() : 'Unknown',
       phone: normalizedPhone,
       date: normalizedDate,
       referrer: normalizedReferrer,
@@ -230,8 +229,6 @@ export async function GET(request: NextRequest) {
         comparison = a.name.localeCompare(b.name)
       } else if (sortBy === 'bloodGroup') {
         comparison = a.bloodGroup.localeCompare(b.bloodGroup)
-      } else if (sortBy === 'hospital') {
-        comparison = (a.hospital || '').localeCompare(b.hospital || '')
       } else if (sortBy === 'batch') {
         comparison = (a.batch || '').localeCompare(b.batch || '')
       } else if (sortBy === 'createdAt') {
