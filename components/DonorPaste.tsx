@@ -31,6 +31,37 @@ const bloodGroupColors: Record<string, string> = {
   "O-": "bg-blue-50 text-blue-600 border-blue-100",
 }
 
+// Helper function to capitalize and format text
+function capitalizeWords(text: string | null | undefined): string | null | undefined {
+  if (!text) return text
+  return text
+    .split(' ')
+    .map(word => {
+      if (word.length === 0) return word
+      // Keep acronyms uppercase (2-3 letters all caps)
+      if (word.length <= 3 && word === word.toUpperCase()) return word
+      // Capitalize first letter, lowercase rest
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
+// Format donor data before submission
+function formatDonorData(donor: any) {
+  return {
+    ...donor,
+    name: capitalizeWords(donor.name),
+    hospital: capitalizeWords(donor.hospital),
+    referrer: capitalizeWords(donor.referrer),
+    hallName: capitalizeWords(donor.hallName),
+    // Batch and blood group stay as-is
+    batch: donor.batch,
+    bloodGroup: donor.bloodGroup,
+    phone: donor.phone,
+    date: donor.date,
+  }
+}
+
 export function DonorPaste() {
   const [text, setText] = useState("")
   const [parsedData, setParsedData] = useState<any[] | any>(null)
@@ -48,12 +79,15 @@ export function DonorPaste() {
       const parsed = await parseBulkFormattedText(text)
       
       if (parsed.length > 0) {
-        if (parsed.length > 1) {
+        // Format the parsed data before showing preview
+        const formattedParsed = parsed.map(donor => formatDonorData(donor))
+        
+        if (formattedParsed.length > 1) {
           setIsBulk(true)
-          setParsedData(parsed)
+          setParsedData(formattedParsed)
         } else {
           setIsBulk(false)
-          setParsedData(parsed[0])
+          setParsedData(formattedParsed[0])
         }
       } else {
         setError("Could not parse the text. Please check the format.")
@@ -81,10 +115,13 @@ export function DonorPaste() {
       // Submit all donors
       for (const donor of donors) {
         try {
+          // Format and capitalize donor data before submission
+          const formattedDonor = formatDonorData(donor)
+          
           const response = await fetch("/api/donors", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(donor),
+            body: JSON.stringify(formattedDonor),
           })
 
           const data = await response.json()
@@ -186,17 +223,17 @@ export function DonorPaste() {
         <div className="p-4 bg-muted/50 rounded-lg border text-sm space-y-2">
           <p className="font-medium text-foreground">Expected format:</p>
           <div className="font-mono text-xs bg-background p-3 rounded border space-y-0.5 text-muted-foreground">
-            <div>Donor Name: John Doe</div>
-            <div>Blood Group: B+ <span className="text-muted-foreground/60">(or B(+ve), B(positive))</span></div>
-            <div>Batch: 2020</div>
-            <div>Hospital: Dhaka Medical</div>
-            <div>Phone: 01712345678</div>
-            <div>Date: 25-01-2026 <span className="text-muted-foreground/60">(DD-MM-YYYY)</span></div>
-            <div>Referrer: Jane Smith</div>
-            <div>Hall Name: Shahid Hall</div>
+            <div>Parvej Shah</div>
+            <div>B+</div>
+            <div>IIT 23-24</div>
+            <div>DMC</div>
+            <div>01516538054</div>
+            <div>25-08-25</div>
+            <div>Hasanur Rahman</div>
+            <div>AEH Hall</div>
           </div>
           <p className="text-muted-foreground text-xs">
-            For multiple donors, separate entries with blank lines.
+            For multiple donors, separate entries with blank lines. Text will be auto-capitalized.
           </p>
         </div>
 
@@ -210,7 +247,7 @@ export function DonorPaste() {
             id="paste-text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste your formatted donor information here..."
+            placeholder="Paste donor info here (one line per field)&#10;Example:&#10;Parvej Shah&#10;B+&#10;IIT 23-24&#10;DMC&#10;01516538054&#10;25-08-25&#10;Hasanur Rahman&#10;AEH Hall"
             className="min-h-40 font-mono text-sm"
           />
         </div>
@@ -268,82 +305,110 @@ export function DonorPaste() {
             </CardHeader>
             <CardContent className="space-y-4">
               {isBulk && Array.isArray(parsedData) ? (
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                   {parsedData.map((donor, index) => (
-                    <div key={index} className="p-4 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          Donor #{index + 1}
-                        </span>
+                    <div key={index} className="border rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      {/* Compact header */}
+                      <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-2.5 border-b flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span className="text-xs font-semibold text-primary">
+                            #{index + 1}
+                          </span>
+                          <span className="font-medium truncate">{donor.name || "N/A"}</span>
+                        </div>
                         {donor.bloodGroup && (
                           <span className={cn(
-                            "inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-bold border",
+                            "inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold border flex-shrink-0",
                             bloodGroupColors[donor.bloodGroup] || "bg-muted text-muted-foreground"
                           )}>
+                            <Droplets className="h-3 w-3 mr-1" />
                             {donor.bloodGroup}
                           </span>
                         )}
+                      </div>
+
+                      {/* Compact details */}
+                      <div className="p-3 grid grid-cols-2 gap-2.5 text-sm">
+                        <div className="space-y-0.5">
+                          <p className="text-xs text-muted-foreground">Phone</p>
+                          <p className="font-medium">{donor.phone || "N/A"}</p>
                         </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                        <div className="flex gap-1">
-                          <span className="text-muted-foreground">Name:</span>
-                          <span className="font-medium truncate">{donor.name || "N/A"}</span>
+                        <div className="space-y-0.5">
+                          <p className="text-xs text-muted-foreground">Date</p>
+                          <p className="font-medium">{donor.date || "N/A"}</p>
                         </div>
-                        <div className="flex gap-1">
-                          <span className="text-muted-foreground">Phone:</span>
-                          <span>{donor.phone || "N/A"}</span>
+                        <div className="space-y-0.5">
+                          <p className="text-xs text-muted-foreground">Batch</p>
+                          <p className="truncate">{donor.batch || "Unknown"}</p>
                         </div>
-                        <div className="flex gap-1">
-                          <span className="text-muted-foreground">Date:</span>
-                          <span>{donor.date || "N/A"}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <span className="text-muted-foreground">Hospital:</span>
-                          <span className="truncate">{donor.hospital || "N/A"}</span>
+                        <div className="space-y-0.5">
+                          <p className="text-xs text-muted-foreground">Hospital</p>
+                          <p className="truncate">{donor.hospital || "Unknown"}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="p-4 border rounded-lg bg-muted/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="font-medium">{parsedData.name || "N/A"}</span>
-                    {parsedData.bloodGroup && (
-                      <span className={cn(
-                        "inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-bold border",
-                        bloodGroupColors[parsedData.bloodGroup] || "bg-muted text-muted-foreground"
-                      )}>
-                        <Droplets className="h-3.5 w-3.5 mr-1.5" />
-                        {parsedData.bloodGroup}
-                      </span>
+                <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+                  {/* Header with name and blood group */}
+                  <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent p-4 border-b">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg truncate">{parsedData.name || "N/A"}</h3>
+                      </div>
+                      {parsedData.bloodGroup && (
+                        <span className={cn(
+                          "inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-sm font-bold border flex-shrink-0",
+                          bloodGroupColors[parsedData.bloodGroup] || "bg-muted text-muted-foreground"
+                        )}>
+                          <Droplets className="h-3.5 w-3.5 mr-1.5" />
+                          {parsedData.bloodGroup}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Details grid */}
+                  <div className="p-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Phone</p>
+                        <p className="text-sm font-medium">{parsedData.phone || "N/A"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Date</p>
+                        <p className="text-sm font-medium">{parsedData.date || "N/A"}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Batch</p>
+                        <p className="text-sm">{parsedData.batch || "Unknown"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Hospital</p>
+                        <p className="text-sm truncate">{parsedData.hospital || "Unknown"}</p>
+                      </div>
+                    </div>
+
+                    {(parsedData.referrer || parsedData.hallName) && (
+                      <div className="pt-2 border-t space-y-2">
+                        {parsedData.referrer && (
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium">Referrer</p>
+                            <p className="text-sm">{parsedData.referrer}</p>
+                          </div>
+                        )}
+                        {parsedData.hallName && (
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium">Hall</p>
+                            <p className="text-sm">{parsedData.hallName}</p>
+                          </div>
+                        )}
+                      </div>
                     )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground">Phone:</span>
-                      <span>{parsedData.phone || "N/A"}</span>
-                  </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground">Date:</span>
-                      <span>{parsedData.date || "N/A"}</span>
-                  </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground">Batch:</span>
-                      <span>{parsedData.batch || "N/A"}</span>
-                  </div>
-                    <div className="flex gap-2">
-                      <span className="text-muted-foreground">Hospital:</span>
-                      <span className="truncate">{parsedData.hospital || "N/A"}</span>
-                  </div>
-                    <div className="flex gap-2 col-span-2">
-                      <span className="text-muted-foreground">Referrer:</span>
-                      <span>{parsedData.referrer || "N/A"}</span>
-                  </div>
-                    <div className="flex gap-2 col-span-2">
-                      <span className="text-muted-foreground">Hall:</span>
-                      <span>{parsedData.hallName || "N/A"}</span>
-                  </div>
                   </div>
                 </div>
               )}
