@@ -52,3 +52,6 @@ next-env.d.ts
 /public/worker-*.js.map
 /public/fallback-*.js
 /public/fallback-*.js.map
+
+# Deployment verification
+DEPLOYMENT_VERIFICATION.md

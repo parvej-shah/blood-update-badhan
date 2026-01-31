@@ -16,7 +16,7 @@ export function Navigation() {
   ]
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 pt-safe">
+    <nav className="hidden md:block border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 pt-safe">
       <div className="container mx-auto px-4">
         <div className="flex h-14 md:h-16 items-center justify-between">
           {/* Logo & Brand */}
