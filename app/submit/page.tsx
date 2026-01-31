@@ -42,15 +42,8 @@ export default function SubmitPage() {
       {/* Form Section */}
       <div className="container mx-auto px-4 py-6 pb-8">
         <div className="max-w-2xl mx-auto">
-          <Tabs defaultValue="form" className="w-full">
+          <Tabs defaultValue="paste" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-muted/80 backdrop-blur-sm shadow-lg rounded-xl">
-              <TabsTrigger 
-                value="form" 
-                className="h-12 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg gap-2"
-              >
-                <FormInput className="h-4 w-4" />
-                <span>Form Entry</span>
-              </TabsTrigger>
               <TabsTrigger 
                 value="paste" 
                 className="h-12 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg gap-2"
@@ -58,13 +51,20 @@ export default function SubmitPage() {
                 <FileText className="h-4 w-4" />
                 <span>Paste Text</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="form" 
+                className="h-12 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg gap-2"
+              >
+                <FormInput className="h-4 w-4" />
+                <span>Form Entry</span>
+              </TabsTrigger>
         </TabsList>
             <div className="mt-6">
-              <TabsContent value="form" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <DonorForm />
-        </TabsContent>
               <TabsContent value="paste" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <DonorPaste />
+        </TabsContent>
+              <TabsContent value="form" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <DonorForm />
         </TabsContent>
             </div>
       </Tabs>
