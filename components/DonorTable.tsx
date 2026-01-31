@@ -35,7 +35,10 @@ import {
   Building2,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -265,6 +268,14 @@ export function DonorTable() {
 
   const hasActiveFilters = filters.bloodGroup !== "all" || filters.search || filters.dateFrom || filters.dateTo
 
+  // Toggle date sort order
+  const toggleDateSort = () => {
+    setSort(prev => ({
+      field: "date",
+      order: prev.field === "date" && prev.order === "desc" ? "asc" : "desc"
+    }))
+  }
+
   // Format date for display (DD-MM-YYYY to readable format)
   const formatDate = (dateStr: string) => {
     const parts = dateStr.split('-')
@@ -310,28 +321,50 @@ export function DonorTable() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Search Bar - Always Visible */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, phone, hospital, batch, or referrer..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 pr-10 h-11"
-            />
-            {searchInput && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                onClick={() => {
-                  setSearchInput("")
-                  setFilters(prev => ({ ...prev, search: "" }))
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+          {/* Search Bar and Sort Toggle */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, phone, hospital, batch, or referrer..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-10 pr-10 h-11"
+              />
+              {searchInput && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={() => {
+                    setSearchInput("")
+                    setFilters(prev => ({ ...prev, search: "" }))
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {/* One-tap Date Sort Toggle */}
+            <Button
+              onClick={toggleDateSort}
+              variant={sort.field === "date" ? "default" : "outline"}
+              size="sm"
+              className="h-11 px-3 sm:px-4 touch-target whitespace-nowrap"
+              title={sort.field === "date" && sort.order === "desc" ? "Newest first" : "Oldest first"}
+            >
+              <Calendar className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Date</span>
+              {sort.field === "date" ? (
+                sort.order === "desc" ? (
+                  <ArrowDown className="h-4 w-4 ml-1" />
+                ) : (
+                  <ArrowUp className="h-4 w-4 ml-1" />
+                )
+              ) : (
+                <ArrowUpDown className="h-4 w-4 ml-1" />
+              )}
+            </Button>
           </div>
 
           {/* Advanced Filters Panel */}
