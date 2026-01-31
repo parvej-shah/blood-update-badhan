@@ -6,7 +6,9 @@ const withPWA = withPWAInit({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
-  // Cache strategies for different routes
+  // Faster update checking
+  reloadOnOnline: true,
+  // Cache strategies - optimized for quick updates
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
@@ -32,9 +34,21 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      handler: "StaleWhileRevalidate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "static-image-assets",
+        expiration: {
+          maxEntries: 64,
+          maxAgeSeconds: 60 * 60, // 1 hour - shorter for quick updates
+        },
+        networkTimeoutSeconds: 3,
+      },
+    },
+    {
+      urlPattern: /\/_next\/static\/.*/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "next-static",
         expiration: {
           maxEntries: 64,
           maxAgeSeconds: 24 * 60 * 60, // 1 day
@@ -43,24 +57,26 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\.(?:js)$/i,
-      handler: "StaleWhileRevalidate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "static-js-assets",
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
+          maxAgeSeconds: 60 * 60, // 1 hour - shorter for quick updates
         },
+        networkTimeoutSeconds: 3,
       },
     },
     {
       urlPattern: /\.(?:css|less)$/i,
-      handler: "StaleWhileRevalidate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "static-style-assets",
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
+          maxAgeSeconds: 60 * 60, // 1 hour - shorter for quick updates
         },
+        networkTimeoutSeconds: 3,
       },
     },
     {
@@ -70,21 +86,22 @@ const withPWA = withPWAInit({
         cacheName: "api-cache",
         expiration: {
           maxEntries: 16,
-          maxAgeSeconds: 60 * 60, // 1 hour
+          maxAgeSeconds: 5 * 60, // 5 minutes - fresh API data
         },
-        networkTimeoutSeconds: 10,
+        networkTimeoutSeconds: 5,
       },
     },
     {
-      urlPattern: /.*/i,
+      // HTML pages - always try network first for latest content
+      urlPattern: /^\/(?!api\/).*$/i,
       handler: "NetworkFirst",
       options: {
-        cacheName: "others",
+        cacheName: "pages-cache",
         expiration: {
           maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
+          maxAgeSeconds: 60 * 60, // 1 hour
         },
-        networkTimeoutSeconds: 10,
+        networkTimeoutSeconds: 3,
       },
     },
   ],

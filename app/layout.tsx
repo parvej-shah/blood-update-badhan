@@ -3,6 +3,7 @@ import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { BottomNav } from "@/components/BottomNav";
+import { PWAUpdater } from "@/components/PWAUpdater";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           {children}
         </main>
         <BottomNav />
+        <PWAUpdater />
         <Toaster />
         <Analytics />
       </body>
