@@ -1,0 +1,38 @@
+{
+  "name": "Badhan Blood Donation",
+  "short_name": "Badhan",
+  "description": "Volunteer blood donation management system for Badhan - Amar Ekushey Hall Unit",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "categories": ["health", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Search Donors",
+      "short_name": "Search",
+      "description": "Search for available blood donors",
+      "url": "/search",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Submit Donor",
+      "short_name": "Submit",
+      "description": "Submit a new blood donation record",
+      "url": "/submit",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
+
