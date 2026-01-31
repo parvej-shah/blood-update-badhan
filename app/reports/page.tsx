@@ -111,7 +111,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Modern Sleek Header */}
       <div className="relative z-0">
         {/* Gradient Background */}

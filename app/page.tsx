@@ -1,11 +1,11 @@
 import { StatsCards } from "@/components/StatsCards"
 import { DonorTable } from "@/components/DonorTable"
 import { MonthlyChart } from "@/components/Charts"
-import { Droplets, HeartHandshake, TrendingUp } from "lucide-react"
+import { Droplets, HeartHandshake, TrendingUp, BarChart3, Users } from "lucide-react"
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Modern Sleek Header */}
       <div className="relative z-0">
         {/* Gradient Background */}
@@ -45,48 +45,57 @@ export default function DashboardPage() {
         </div>
         
         {/* Bottom Curve */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-background rounded-t-[2.5rem]" />
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-background rounded-t-[2.5rem]" />
       </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Stats Section */}
         <section>
-          <div className="flex items-center gap-2 mb-4 md:mb-6">
-            <div className="h-6 md:h-8 w-1 bg-primary rounded-full" />
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
             <h2 className="text-lg md:text-xl font-semibold">Overview Statistics</h2>
           </div>
-      <StatsCards />
+          <StatsCards />
         </section>
 
         {/* Donor Records Section */}
         <section>
-      <DonorTable />
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <h2 className="text-lg md:text-xl font-semibold">Donor Records</h2>
+          </div>
+          <DonorTable />
         </section>
 
         {/* Charts Section */}
         <section>
-          <div className="flex items-center gap-2 mb-4 md:mb-6">
-            <div className="h-6 md:h-8 w-1 bg-primary rounded-full" />
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <BarChart3 className="h-4 w-4 text-primary" />
+            </div>
             <h2 className="text-lg md:text-xl font-semibold">Donation Trends</h2>
           </div>
-      <MonthlyChart />
+          <MonthlyChart />
         </section>
       </div>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 mt-8 md:mt-12 mb-16 md:mb-0">
-        <div className="container mx-auto px-4 py-6 md:py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Droplets className="h-5 w-5 text-primary" />
-              <span className="font-medium">Badhan</span>
-              <span className="text-sm">- Amar Ekushey Hall Unit</span>
+      <footer className="border-t mt-8 md:mt-12 mb-20 md:mb-0">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex items-center gap-2">
+              <Droplets className="h-4 w-4 text-primary" />
+              <span className="font-semibold text-sm">Badhan</span>
+              <span className="text-muted-foreground text-sm">• Amar Ekushey Hall Unit</span>
             </div>
-            <div className="text-sm text-muted-foreground text-center md:text-right">
-              <p>Saving lives through voluntary blood donation in Bangladesh</p>
-              <p className="mt-1">For volunteers by Parvej Shah</p>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              For volunteers by Parvej Shah
+            </p>
           </div>
         </div>
       </footer>

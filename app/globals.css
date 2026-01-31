@@ -539,6 +539,24 @@
   }
 }
 
+/* Card hover effects */
+.card-interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Subtle card hover for desktop */
+@media (hover: hover) {
+  [data-slot="card"]:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
+  }
+}
+
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
