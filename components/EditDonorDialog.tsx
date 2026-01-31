@@ -164,7 +164,7 @@ export function EditDonorDialog({ donor, open, onOpenChange, onSuccess }: EditDo
             {/* Blood Group */}
             <div className="space-y-2">
               <Label htmlFor="edit-bloodGroup" className="flex items-center gap-2 text-sm font-medium">
-                <Droplets className="h-4 w-4 text-red-500" />
+                <Droplets className="h-4 w-4 text-primary" />
                 Blood Group <span className="text-destructive">*</span>
               </Label>
               <Select

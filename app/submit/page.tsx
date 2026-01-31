@@ -9,7 +9,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#6B1E28] via-[#8B2E3C] to-[#C94C5E] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-5 left-10 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-5 right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
@@ -24,12 +24,12 @@ export default function SubmitPage() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Submit Donation
               </h1>
-              <p className="text-red-100">
+              <p className="text-white/80">
                 Record a new blood donation
               </p>
             </div>
           </div>
-          <p className="text-red-100 max-w-2xl text-sm md:text-base">
+          <p className="text-white/80 max-w-2xl text-sm md:text-base">
             Add donor information to the Badhan database. You can enter details manually 
             using the form or paste pre-formatted text for quick entry.
           </p>
@@ -71,7 +71,7 @@ export default function SubmitPage() {
         <div className="max-w-2xl mx-auto mt-8">
           <div className="p-6 bg-muted/50 rounded-xl border">
             <div className="flex items-start gap-4">
-              <div className="flex items-center justify-center w-10 h-10 bg-red-100 text-red-600 rounded-lg shrink-0">
+              <div className="flex items-center justify-center w-10 h-10 bg-primary/10 text-primary rounded-lg shrink-0">
                 <Droplets className="h-5 w-5" />
               </div>
               <div>

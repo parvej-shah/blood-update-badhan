@@ -117,7 +117,7 @@ export function MonthlyChart() {
       <Card className="border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-red-500" />
+            <BarChart3 className="h-5 w-5 text-primary" />
             Monthly Donations
           </CardTitle>
           <CardDescription>Last 12 months by blood group</CardDescription>
@@ -155,7 +155,7 @@ export function MonthlyChart() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-red-500" />
+              <TrendingUp className="h-5 w-5 text-primary" />
               Monthly Donations
             </CardTitle>
             <CardDescription>Blood group breakdown over the last 12 months</CardDescription>

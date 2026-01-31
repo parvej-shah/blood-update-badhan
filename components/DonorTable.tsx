@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { DonorTableLoading } from "@/components/ui/skeleton-mobile"
 import { DateRangePicker } from "@/components/DateRangePicker"
 import { EditDonorDialog } from "./EditDonorDialog"
 import { checkAdminStatus } from "@/lib/auth"
@@ -45,8 +45,8 @@ import { cn } from "@/lib/utils"
 const bloodGroups = ["all", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
 const bloodGroupColors: Record<string, string> = {
-  "A+": "bg-red-100 text-red-700 border-red-200",
-  "A-": "bg-red-50 text-red-600 border-red-100",
+  "A+": "bg-rose-100 text-rose-700 border-rose-200",
+  "A-": "bg-rose-50 text-rose-600 border-rose-100",
   "B+": "bg-orange-100 text-orange-700 border-orange-200",
   "B-": "bg-orange-50 text-orange-600 border-orange-100",
   "AB+": "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -292,7 +292,7 @@ export function DonorTable() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Users className="h-6 w-6 text-red-500" />
+              <Users className="h-6 w-6 text-primary" />
               Donor Records
             </CardTitle>
             <CardDescription className="mt-1">
@@ -497,43 +497,7 @@ export function DonorTable() {
 
           {/* Table */}
           {loading ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left p-3 font-medium"><Skeleton className="h-4 w-20" /></th>
-                      <th className="text-left p-3 font-medium"><Skeleton className="h-4 w-16" /></th>
-                      <th className="text-left p-3 font-medium hidden md:table-cell"><Skeleton className="h-4 w-20" /></th>
-                      <th className="text-left p-3 font-medium hidden lg:table-cell"><Skeleton className="h-4 w-16" /></th>
-                      <th className="text-left p-3 font-medium"><Skeleton className="h-4 w-24" /></th>
-                      <th className="text-left p-3 font-medium"><Skeleton className="h-4 w-20" /></th>
-                      {isAdmin && <th className="text-left p-3 font-medium"><Skeleton className="h-4 w-16" /></th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {[...Array(limit > 10 ? 10 : limit)].map((_, i) => (
-                      <tr key={i} className="animate-pulse">
-                        <td className="p-3"><Skeleton className="h-5 w-32" /></td>
-                        <td className="p-3"><Skeleton className="h-6 w-12 rounded-full" /></td>
-                        <td className="p-3 hidden md:table-cell"><Skeleton className="h-5 w-28" /></td>
-                        <td className="p-3 hidden lg:table-cell"><Skeleton className="h-5 w-16" /></td>
-                        <td className="p-3"><Skeleton className="h-5 w-28" /></td>
-                        <td className="p-3"><Skeleton className="h-5 w-24" /></td>
-                        {isAdmin && (
-                          <td className="p-3">
-                            <div className="flex gap-1">
-                              <Skeleton className="h-8 w-8 rounded" />
-                              <Skeleton className="h-8 w-8 rounded" />
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <DonorTableLoading />
           ) : donors.length === 0 ? (
             <div className="text-center py-16 bg-muted/30 rounded-lg border border-dashed">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />

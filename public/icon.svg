@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Background -->
-  <rect width="512" height="512" fill="#dc2626" rx="96"/>
+  <rect width="512" height="512" fill="#6B1E28" rx="96"/>
   
   <!-- Blood drop shape -->
   <path 
@@ -11,7 +11,7 @@
   <!-- Heart inside drop -->
   <path 
     d="M256 260 C240 245 215 255 215 280 C215 305 256 340 256 340 C256 340 297 305 297 280 C297 255 272 245 256 260 Z" 
-    fill="#dc2626"
+    fill="#6B1E28"
   />
 </svg>
 

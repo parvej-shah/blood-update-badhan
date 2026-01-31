@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { StatsCardsLoading } from "@/components/ui/skeleton-mobile"
 import { 
   Droplets, 
   TrendingUp, 
@@ -77,32 +77,7 @@ export function StatsCards() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="border-0 shadow-md">
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-20 mb-1" />
-                <Skeleton className="h-3 w-16" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <div>
-          <Skeleton className="h-6 w-48 mb-4" />
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-            {[...Array(8)].map((_, i) => (
-              <Card key={i} className="border-0 shadow-sm">
-                <CardContent className="p-4 text-center">
-                  <Skeleton className="h-8 w-12 mx-auto mb-2" />
-                  <Skeleton className="h-6 w-8 mx-auto" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <StatsCardsLoading />
       </div>
     )
   }
@@ -114,7 +89,7 @@ export function StatsCards() {
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* This Month */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-red-500 to-red-600 text-white overflow-hidden relative">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-[#6B1E28] to-[#8B2E3C] text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-red-100 flex items-center gap-2">
@@ -140,7 +115,7 @@ export function StatsCards() {
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{allTimeStats?.totalDonors || 0}</div>
             <p className="text-muted-foreground text-xs mt-1 flex items-center gap-1">
-              <Heart className="h-3 w-3 text-red-500" />
+              <Heart className="h-3 w-3 text-primary" />
               total donations
             </p>
           </CardContent>
@@ -191,7 +166,7 @@ export function StatsCards() {
       {/* Blood Group Breakdown */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Droplets className="h-5 w-5 text-red-500" />
+          <Droplets className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Blood Group Breakdown</h3>
           <Badge variant="secondary" className="text-xs">{currentMonth}</Badge>
         </div>

@@ -24,8 +24,8 @@ import { cn } from "@/lib/utils"
 const bloodGroups = ["all", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
 const bloodGroupColors: Record<string, string> = {
-  "A+": "bg-red-100 text-red-700 border-red-200",
-  "A-": "bg-red-50 text-red-600 border-red-100",
+  "A+": "bg-rose-100 text-rose-700 border-rose-200",
+  "A-": "bg-rose-50 text-rose-600 border-rose-100",
   "B+": "bg-orange-100 text-orange-700 border-orange-200",
   "B-": "bg-orange-50 text-orange-600 border-orange-100",
   "AB+": "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -113,7 +113,7 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#6B1E28] via-[#8B2E3C] to-[#C94C5E] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-5 left-10 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-5 right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
@@ -128,12 +128,12 @@ export default function ReportsPage() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Reports & Analytics
               </h1>
-              <p className="text-red-100">
+              <p className="text-white/80">
                 Generate detailed donation reports
               </p>
             </div>
           </div>
-          <p className="text-red-100 max-w-2xl text-sm md:text-base">
+          <p className="text-white/80 max-w-2xl text-sm md:text-base">
             Analyze donation patterns, track top referrers, and view blood group distributions
             with customizable date ranges and filters.
           </p>
@@ -145,7 +145,7 @@ export default function ReportsPage() {
         <Card className="border-0 shadow-lg -mt-6 relative z-10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-red-500" />
+              <FileText className="h-5 w-5 text-primary" />
               Report Filters
             </CardTitle>
             <CardDescription>
@@ -271,16 +271,16 @@ export default function ReportsPage() {
         <div className="space-y-8">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-red-600 text-white">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-[#6B1E28] to-[#8B2E3C] text-white">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-red-100 flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-white/80 flex items-center gap-2">
                     <Droplets className="h-4 w-4" />
                     Total Donations
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold">{reportData.totalDonations}</div>
-                  <p className="text-red-100 text-xs mt-1">in selected period</p>
+                  <p className="text-white/80 text-xs mt-1">in selected period</p>
                 </CardContent>
               </Card>
 
@@ -326,7 +326,7 @@ export default function ReportsPage() {
               <Card className="border-0 shadow-lg">
               <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Droplets className="h-5 w-5 text-red-500" />
+                    <Droplets className="h-5 w-5 text-primary" />
                     Blood Group Details
                   </CardTitle>
                   <CardDescription>Breakdown by blood type</CardDescription>

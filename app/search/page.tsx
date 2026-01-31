@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { SearchResultsLoading } from "@/components/ui/skeleton-mobile"
 import { 
   Search, 
   Droplets, 
@@ -22,8 +22,8 @@ import { cn } from "@/lib/utils"
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
 const bloodGroupColors: Record<string, string> = {
-  "A+": "bg-red-100 text-red-700 border-red-200",
-  "A-": "bg-red-50 text-red-600 border-red-100",
+  "A+": "bg-rose-100 text-rose-700 border-rose-200",
+  "A-": "bg-rose-50 text-rose-600 border-rose-100",
   "B+": "bg-orange-100 text-orange-700 border-orange-200",
   "B-": "bg-orange-50 text-orange-600 border-orange-100",
   "AB+": "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -144,7 +144,7 @@ export default function SearchDonorPage() {
   return (
     <div className="min-h-screen">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#6B1E28] via-[#8B2E3C] to-[#C94C5E] text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-5 left-10 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-5 right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
@@ -159,12 +159,12 @@ export default function SearchDonorPage() {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Search Available Donors
               </h1>
-              <p className="text-red-100">
+              <p className="text-white/80">
                 Find donors who are eligible to donate again
               </p>
             </div>
           </div>
-          <p className="text-red-100 max-w-2xl text-sm md:text-base">
+          <p className="text-white/80 max-w-2xl text-sm md:text-base">
             Search for donors by blood group. The system shows donors whose last donation 
             was at least 4 months ago, making them eligible to donate again.
           </p>
@@ -177,7 +177,7 @@ export default function SearchDonorPage() {
         <Card className="border-0 shadow-lg -mt-6 relative z-10 mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Droplets className="h-5 w-5 text-red-500" />
+              <Droplets className="h-5 w-5 text-primary" />
               Select Blood Group
             </CardTitle>
             <CardDescription>
@@ -213,25 +213,14 @@ export default function SearchDonorPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="border-0 shadow-md">
-                <CardContent className="p-6">
-                  <Skeleton className="h-6 w-32 mb-4" />
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-4 w-28 mb-2" />
-                  <Skeleton className="h-4 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <SearchResultsLoading />
         ) : searchResults ? (
           <div className="space-y-6">
             {/* Results Summary and Sort */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <Users className="h-6 w-6 text-red-500" />
+                  <Users className="h-6 w-6 text-primary" />
                   Available Donors
                 </h2>
                 <p className="text-muted-foreground mt-1">
@@ -302,7 +291,7 @@ export default function SearchDonorPage() {
                           <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                           <a 
                             href={`tel:${donor.phone}`} 
-                            className="font-medium hover:text-red-600 hover:underline transition-colors"
+                            className="font-medium hover:text-primary hover:underline transition-colors"
                           >
                             {donor.phone}
                           </a>

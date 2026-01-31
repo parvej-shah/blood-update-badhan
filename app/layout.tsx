@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
+import { BottomNav } from "@/components/BottomNav";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -23,7 +24,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#dc2626",
+  themeColor: "#6B1E28",
 };
 
 export const metadata: Metadata = {
@@ -63,15 +64,16 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Badhan" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#dc2626" />
+        <meta name="msapplication-TileColor" content="#6B1E28" />
         <meta name="msapplication-tap-highlight" content="no" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body className="antialiased min-h-screen bg-background font-sans">
         <Navigation />
-        <main className="page-enter pb-safe">
+        <main className="page-enter pb-16 md:pb-0">
           {children}
         </main>
+        <BottomNav />
         <Toaster />
         <Analytics />
       </body>
