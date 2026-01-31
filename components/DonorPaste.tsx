@@ -247,7 +247,7 @@ export function DonorPaste() {
             id="paste-text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste donor info here (one line per field)&#10;Example:&#10;Parvej Shah&#10;B+&#10;IIT 23-24&#10;DMC&#10;01516538054&#10;25-08-25&#10;Hasanur Rahman&#10;AEH Hall"
+            placeholder="Paste donor info here (one line per field)"
             className="min-h-40 font-mono text-sm"
           />
         </div>
