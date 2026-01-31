@@ -142,39 +142,42 @@ export default function SearchDonorPage() {
   }, [searchResults, sortBy])
 
   return (
-    <div className="min-h-screen">
-      {/* Header Section */}
-      <div className="bg-gradient-to-br from-[#6B1E28] via-[#8B2E3C] to-[#C94C5E] text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-5 left-10 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
-          <div className="absolute bottom-5 right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
-        </div>
+    <div className="min-h-screen bg-background">
+      {/* Modern Sleek Header */}
+      <div className="relative z-0">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#6B1E28] via-[#7A2A36] to-[#8B3444]" />
         
-        <div className="container mx-auto px-4 py-12 relative">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl">
-              <Search className="h-7 w-7" />
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+        
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-6 md:py-8 pb-10 md:pb-12">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
+              <Search className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Search Available Donors
+              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                Search Donors
               </h1>
-              <p className="text-white/80">
-                Find donors who are eligible to donate again
+              <p className="text-white/60 text-sm">
+                Find eligible donors by blood group
               </p>
             </div>
           </div>
-          <p className="text-white/80 max-w-2xl text-sm md:text-base">
-            Search for donors by blood group. The system shows donors whose last donation 
-            was at least 4 months ago, making them eligible to donate again.
-          </p>
         </div>
+        
+        {/* Bottom Curve */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-background rounded-t-[2.5rem]" />
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 pb-8">
         {/* Blood Group Selector */}
-        <Card className="border-0 shadow-lg -mt-6 relative z-10 mb-8">
+        <Card className="border-0 shadow-lg mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Droplets className="h-5 w-5 text-primary" />
