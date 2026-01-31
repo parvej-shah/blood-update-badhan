@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,7 +14,8 @@ import {
   Building2, 
   GraduationCap,
   Users,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -77,10 +79,13 @@ function formatDaysSince(days: number): string {
   }
 }
 
+type SortOption = 'newest' | 'oldest' | 'name'
+
 export default function SearchDonorPage() {
   const [selectedBloodGroup, setSelectedBloodGroup] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>('oldest')
 
   const handleSearch = async (bloodGroup: string) => {
     if (!bloodGroup || bloodGroup === "all") {
@@ -114,6 +119,27 @@ export default function SearchDonorPage() {
       setSearchResults(null)
     }
   }, [selectedBloodGroup])
+
+  // Sort donors based on selected option
+  const sortedDonors = React.useMemo(() => {
+    if (!searchResults?.donors) return []
+    
+    const donors = [...searchResults.donors]
+    
+    switch (sortBy) {
+      case 'newest':
+        // Most recent donation first (least days since donation)
+        return donors.sort((a, b) => a.daysSinceLastDonation - b.daysSinceLastDonation)
+      case 'oldest':
+        // Oldest donation first (most days since donation)
+        return donors.sort((a, b) => b.daysSinceLastDonation - a.daysSinceLastDonation)
+      case 'name':
+        // Alphabetical by name
+        return donors.sort((a, b) => a.name.localeCompare(b.name))
+      default:
+        return donors
+    }
+  }, [searchResults, sortBy])
 
   return (
     <div className="min-h-screen">
@@ -201,8 +227,8 @@ export default function SearchDonorPage() {
           </div>
         ) : searchResults ? (
           <div className="space-y-6">
-            {/* Results Summary */}
-            <div className="flex items-center justify-between">
+            {/* Results Summary and Sort */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                   <Users className="h-6 w-6 text-red-500" />
@@ -218,6 +244,23 @@ export default function SearchDonorPage() {
                   </span>
                 </p>
               </div>
+              
+              {/* Sort Options */}
+              {searchResults.count > 0 && (
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                    <SelectTrigger className="w-[180px] h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oldest">Longest wait time</SelectItem>
+                      <SelectItem value="newest">Shortest wait time</SelectItem>
+                      <SelectItem value="name">Name (A-Z)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {searchResults.count === 0 ? (
@@ -233,7 +276,7 @@ export default function SearchDonorPage() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.donors.map((donor, index) => (
+                {sortedDonors.map((donor, index) => (
                   <Card 
                     key={`${donor.phone}-${index}`} 
                     className="border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-1"

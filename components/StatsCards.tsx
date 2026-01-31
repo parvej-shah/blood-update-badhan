@@ -219,9 +219,9 @@ export function StatsCards() {
                     count > 0 ? "text-foreground" : "text-muted-foreground"
                   )}>
                     {count}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
             )
           })}
         </div>

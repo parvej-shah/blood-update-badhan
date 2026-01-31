@@ -22,7 +22,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl">
                   <Droplets className="h-6 w-6 blood-drop" />
                 </div>
-                <div>
+      <div>
                   <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                     Welcome to Badhan
                   </h1>
@@ -65,12 +65,12 @@ export default function DashboardPage() {
             <div className="h-8 w-1 bg-red-500 rounded-full" />
             <h2 className="text-xl font-semibold">Overview Statistics</h2>
           </div>
-          <StatsCards />
+      <StatsCards />
         </section>
 
         {/* Donor Records Section */}
         <section>
-          <DonorTable />
+      <DonorTable />
         </section>
 
         {/* Charts Section */}
@@ -79,7 +79,7 @@ export default function DashboardPage() {
             <div className="h-8 w-1 bg-red-500 rounded-full" />
             <h2 className="text-xl font-semibold">Donation Trends</h2>
           </div>
-          <MonthlyChart />
+      <MonthlyChart />
         </section>
       </div>
 

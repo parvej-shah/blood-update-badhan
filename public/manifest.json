@@ -2,7 +2,7 @@
   "name": "Badhan Blood Donation",
   "short_name": "Badhan",
   "description": "Volunteer blood donation management system for Badhan - Amar Ekushey Hall Unit",
-  "start_url": "/",
+  "start_url": "/submit",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

@@ -301,10 +301,10 @@ export function DonorTable() {
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full" />
               )}
             </Button>
-            <Button onClick={handleExportCSV} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
+          <Button onClick={handleExportCSV} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
               Export
-            </Button>
+          </Button>
           </div>
         </div>
       </CardHeader>
@@ -351,19 +351,19 @@ export function DonorTable() {
                 {/* Blood Group Filter */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground">Blood Group</label>
-                  <Select
-                    value={filters.bloodGroup}
-                    onValueChange={(value) => {
-                      setFilters({ ...filters, bloodGroup: value })
-                      setPage(1)
-                    }}
-                  >
+            <Select
+              value={filters.bloodGroup}
+              onValueChange={(value) => {
+                setFilters({ ...filters, bloodGroup: value })
+                setPage(1)
+              }}
+            >
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="All Blood Groups" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bloodGroups.map((bg) => (
-                        <SelectItem key={bg} value={bg}>
+              </SelectTrigger>
+              <SelectContent>
+                {bloodGroups.map((bg) => (
+                  <SelectItem key={bg} value={bg}>
                           {bg === "all" ? (
                             "All Blood Groups"
                           ) : (
@@ -376,10 +376,10 @@ export function DonorTable() {
                               </span>
                             </span>
                           )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
                 </div>
 
                 {/* Date Range Filter */}
@@ -390,9 +390,9 @@ export function DonorTable() {
                     dateTo={filters.dateTo}
                     onDateChange={(from, to) => {
                       setFilters({ ...filters, dateFrom: from, dateTo: to })
-                      setPage(1)
-                    }}
-                  />
+                setPage(1)
+              }}
+            />
                 </div>
               </div>
 
@@ -407,8 +407,8 @@ export function DonorTable() {
                     className="h-7 text-xs"
                     onClick={() => {
                       setFilters({ ...filters, bloodGroup: filters.bloodGroup === bg ? "all" : bg })
-                      setPage(1)
-                    }}
+                setPage(1)
+              }}
                   >
                     {bg}
                   </Button>
@@ -459,7 +459,7 @@ export function DonorTable() {
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs">
                 Clear all
               </Button>
-            </div>
+          </div>
           )}
 
           {/* Table */}
@@ -518,8 +518,8 @@ export function DonorTable() {
             <>
               {/* Desktop Table */}
               <div className="hidden md:block rounded-lg border overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                     <thead className="bg-muted/50 sticky top-0">
                       <tr>
                         <th 
@@ -571,8 +571,8 @@ export function DonorTable() {
                         </th>
                         <th className="text-left p-3 font-medium hidden xl:table-cell">Referrer</th>
                         {isAdmin && <th className="text-left p-3 font-medium w-24">Actions</th>}
-                      </tr>
-                    </thead>
+                    </tr>
+                  </thead>
                     <tbody className="divide-y">
                       {donors.map((donor, index) => (
                         <tr 
@@ -614,33 +614,33 @@ export function DonorTable() {
                           </td>
                           <td className="p-3 hidden xl:table-cell text-muted-foreground">
                             {donor.referrer || "N/A"}
-                          </td>
-                          {isAdmin && (
+                        </td>
+                        {isAdmin && (
                             <td className="p-3">
                               <div className="flex items-center gap-1">
-                                <Button
+                              <Button
                                   variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEdit(donor)}
+                                size="sm"
+                                onClick={() => handleEdit(donor)}
                                   className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
                                   variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDelete(donor)}
+                                size="sm"
+                                onClick={() => handleDelete(donor)}
                                   className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 </div>
               </div>
 

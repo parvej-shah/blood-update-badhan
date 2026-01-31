@@ -113,34 +113,34 @@ export function DonorForm() {
                 <Droplets className="h-4 w-4 text-red-500" />
                 Blood Group <span className="text-destructive">*</span>
               </Label>
-              <Select
-                value={formData.bloodGroup}
-                onValueChange={(value) => setFormData({ ...formData, bloodGroup: value })}
-                required
-              >
+            <Select
+              value={formData.bloodGroup}
+              onValueChange={(value) => setFormData({ ...formData, bloodGroup: value })}
+              required
+            >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select blood group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bloodGroups.map((bg) => (
+                <SelectValue placeholder="Select blood group" />
+              </SelectTrigger>
+              <SelectContent>
+                {bloodGroups.map((bg) => (
                     <SelectItem key={bg} value={bg} className="font-medium">
                       <span className="flex items-center gap-2">
                         <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-red-100 text-red-700 text-xs font-bold">
-                          {bg}
+                    {bg}
                         </span>
                       </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 Phone <span className="text-destructive">*</span>
               </Label>
-              <Input
+            <Input
                 id="phone"
                 required
                 type="tel"
@@ -172,27 +172,27 @@ export function DonorForm() {
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 Hospital
               </Label>
-              <Input
-                id="hospital"
-                value={formData.hospital}
-                onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
+            <Input
+              id="hospital"
+              value={formData.hospital}
+              onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
                 placeholder="Hospital name (optional)"
                 className="h-11"
-              />
-            </div>
+            />
+          </div>
 
             <div className="space-y-2">
               <Label htmlFor="batch" className="text-sm font-medium">
                 Batch
               </Label>
-              <Input
+            <Input
                 id="batch"
                 value={formData.batch}
                 onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
                 placeholder="Batch number (optional)"
                 className="h-11"
-              />
-            </div>
+            />
+          </div>
           </div>
 
           {/* Referrer & Hall Name - Two columns */}
@@ -202,27 +202,27 @@ export function DonorForm() {
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
                 Referrer
               </Label>
-              <Input
-                id="referrer"
-                value={formData.referrer}
-                onChange={(e) => setFormData({ ...formData, referrer: e.target.value })}
+            <Input
+              id="referrer"
+              value={formData.referrer}
+              onChange={(e) => setFormData({ ...formData, referrer: e.target.value })}
                 placeholder="Who referred? (optional)"
                 className="h-11"
-              />
-            </div>
+            />
+          </div>
 
             <div className="space-y-2">
               <Label htmlFor="hallName" className="flex items-center gap-2 text-sm font-medium">
                 <Home className="h-4 w-4 text-muted-foreground" />
                 Hall Name
               </Label>
-              <Input
-                id="hallName"
-                value={formData.hallName}
-                onChange={(e) => setFormData({ ...formData, hallName: e.target.value })}
+            <Input
+              id="hallName"
+              value={formData.hallName}
+              onChange={(e) => setFormData({ ...formData, hallName: e.target.value })}
                 placeholder="Hall name (optional)"
                 className="h-11"
-              />
+            />
             </div>
           </div>
 

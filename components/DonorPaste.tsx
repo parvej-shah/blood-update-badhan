@@ -283,7 +283,7 @@ export function DonorPaste() {
                             {donor.bloodGroup}
                           </span>
                         )}
-                      </div>
+                        </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                         <div className="flex gap-1">
                           <span className="text-muted-foreground">Name:</span>
@@ -323,27 +323,27 @@ export function DonorPaste() {
                     <div className="flex gap-2">
                       <span className="text-muted-foreground">Phone:</span>
                       <span>{parsedData.phone || "N/A"}</span>
-                    </div>
+                  </div>
                     <div className="flex gap-2">
                       <span className="text-muted-foreground">Date:</span>
                       <span>{parsedData.date || "N/A"}</span>
-                    </div>
+                  </div>
                     <div className="flex gap-2">
                       <span className="text-muted-foreground">Batch:</span>
                       <span>{parsedData.batch || "N/A"}</span>
-                    </div>
+                  </div>
                     <div className="flex gap-2">
                       <span className="text-muted-foreground">Hospital:</span>
                       <span className="truncate">{parsedData.hospital || "N/A"}</span>
-                    </div>
+                  </div>
                     <div className="flex gap-2 col-span-2">
                       <span className="text-muted-foreground">Referrer:</span>
                       <span>{parsedData.referrer || "N/A"}</span>
-                    </div>
+                  </div>
                     <div className="flex gap-2 col-span-2">
                       <span className="text-muted-foreground">Hall:</span>
                       <span>{parsedData.hallName || "N/A"}</span>
-                    </div>
+                  </div>
                   </div>
                 </div>
               )}
@@ -362,7 +362,7 @@ export function DonorPaste() {
                   <span className="flex items-center gap-2">
                     <Send className="h-4 w-4" />
                     {isBulk && Array.isArray(parsedData)
-                      ? `Submit ${parsedData.length} Donors`
+                  ? `Submit ${parsedData.length} Donors`
                       : "Submit Donation Record"}
                   </span>
                 )}

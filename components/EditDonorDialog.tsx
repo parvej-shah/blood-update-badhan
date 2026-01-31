@@ -180,7 +180,7 @@ export function EditDonorDialog({ donor, open, onOpenChange, onSuccess }: EditDo
                     <SelectItem key={bg} value={bg} className="font-medium">
                       <span className="flex items-center gap-2">
                         <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-red-100 text-red-700 text-xs font-bold">
-                          {bg}
+                      {bg}
                         </span>
                       </span>
                     </SelectItem>

@@ -55,16 +55,16 @@ export default function SubmitPage() {
                 <FileText className="h-4 w-4" />
                 <span>Paste Text</span>
               </TabsTrigger>
-            </TabsList>
+        </TabsList>
             <div className="mt-6">
               <TabsContent value="form" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                <DonorForm />
-              </TabsContent>
+          <DonorForm />
+        </TabsContent>
               <TabsContent value="paste" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                <DonorPaste />
-              </TabsContent>
+          <DonorPaste />
+        </TabsContent>
             </div>
-          </Tabs>
+      </Tabs>
         </div>
 
         {/* Help Section */}

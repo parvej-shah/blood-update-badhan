@@ -88,12 +88,13 @@ export function DatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
           initialFocus
+          className="touch-target-mobile"
         />
       </PopoverContent>
     </Popover>

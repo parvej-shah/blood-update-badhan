@@ -117,8 +117,8 @@ export default function ReportsPage() {
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-5 left-10 w-24 h-24 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute bottom-5 right-10 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
-        </div>
-        
+      </div>
+
         <div className="container mx-auto px-4 py-12 relative">
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl">
@@ -164,16 +164,16 @@ export default function ReportsPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Blood Group</Label>
-                <Select
-                  value={filters.bloodGroup}
-                  onValueChange={(value) => setFilters({ ...filters, bloodGroup: value })}
-                >
+              <Select
+                value={filters.bloodGroup}
+                onValueChange={(value) => setFilters({ ...filters, bloodGroup: value })}
+              >
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="All Blood Groups" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bloodGroups.map((bg) => (
-                      <SelectItem key={bg} value={bg}>
+                </SelectTrigger>
+                <SelectContent>
+                  {bloodGroups.map((bg) => (
+                    <SelectItem key={bg} value={bg}>
                         {bg === "all" ? (
                           "All Blood Groups"
                         ) : (
@@ -186,12 +186,12 @@ export default function ReportsPage() {
                             </span>
                           </span>
                         )}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button 
                 onClick={handleGenerateReport} 
@@ -209,18 +209,18 @@ export default function ReportsPage() {
                     Generate Report
                   </span>
                 )}
+            </Button>
+            {reportData && (
+              <Button onClick={handleExportCSV} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
               </Button>
-              {reportData && (
-                <Button onClick={handleExportCSV} variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        {loading ? (
+      {loading ? (
           <div className="space-y-8 animate-pulse">
             {/* Summary Skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -228,47 +228,47 @@ export default function ReportsPage() {
                 <Card key={i} className="border-0 shadow-md">
                   <CardHeader className="pb-2">
                     <Skeleton className="h-4 w-24" />
-                  </CardHeader>
-                  <CardContent>
+              </CardHeader>
+              <CardContent>
                     <Skeleton className="h-8 w-20 mb-1" />
                     <Skeleton className="h-3 w-32" />
-                  </CardContent>
-                </Card>
+              </CardContent>
+            </Card>
               ))}
-            </div>
+          </div>
 
             {/* Charts Skeleton */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <Skeleton className="h-6 w-48" />
-                </CardHeader>
-                <CardContent>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
                   <Skeleton className="h-[300px] w-full rounded-lg" />
-                </CardContent>
-              </Card>
+            </CardContent>
+          </Card>
               <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <Skeleton className="h-6 w-40" />
-                </CardHeader>
-                <CardContent>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent>
                   <div className="space-y-3">
-                    {[...Array(5)].map((_, i) => (
+                  {[...Array(5)].map((_, i) => (
                       <div key={i} className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Skeleton className="h-8 w-8 rounded" />
-                          <Skeleton className="h-4 w-32" />
-                        </div>
+                      <Skeleton className="h-4 w-32" />
+                    </div>
                         <Skeleton className="h-6 w-12" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : reportData ? (
-          <div className="space-y-8">
+        </div>
+      ) : reportData ? (
+        <div className="space-y-8">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-red-600 text-white">
@@ -290,16 +290,16 @@ export default function ReportsPage() {
                     <UserCheck className="h-4 w-4" />
                     Top Referrer
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   <div className="text-xl font-bold truncate">
                     {reportData.topReferrers[0]?.referrer || "—"}
                   </div>
                   <p className="text-muted-foreground text-xs mt-1">
                     {reportData.topReferrers[0]?.count || 0} referrals
                   </p>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
@@ -324,14 +324,14 @@ export default function ReportsPage() {
               <BloodGroupPieChart data={reportData.bloodGroupBreakdown} />
 
               <Card className="border-0 shadow-lg">
-                <CardHeader>
+              <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Droplets className="h-5 w-5 text-red-500" />
                     Blood Group Details
                   </CardTitle>
                   <CardDescription>Breakdown by blood type</CardDescription>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   <div className="space-y-3">
                     {Object.entries(reportData.bloodGroupBreakdown)
                       .sort((a, b) => b[1] - a[1])
@@ -357,25 +357,25 @@ export default function ReportsPage() {
                             </div>
                             <span className="font-semibold w-12 text-right">{count}</span>
                             <span className="text-muted-foreground text-sm w-12 text-right">{percentage}%</span>
-                          </div>
+                    </div>
                         )
                       })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
             {/* Top Referrers & Hospitals */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="border-0 shadow-lg">
-                <CardHeader>
+              <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Award className="h-5 w-5 text-amber-500" />
                     Top 10 Referrers
                   </CardTitle>
                   <CardDescription>Volunteers who brought the most donors</CardDescription>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   {reportData.topReferrers.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <UserCheck className="h-10 w-10 mx-auto mb-2 opacity-20" />
@@ -398,20 +398,20 @@ export default function ReportsPage() {
                           <Badge variant="secondary">{ref.count}</Badge>
                         </div>
                       ))}
-                    </div>
+                      </div>
                   )}
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
               <Card className="border-0 shadow-lg">
-                <CardHeader>
+              <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-blue-500" />
                     Top 5 Hospitals
                   </CardTitle>
                   <CardDescription>Hospitals with most donations</CardDescription>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   {reportData.topHospitals.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Building2 className="h-10 w-10 mx-auto mb-2 opacity-20" />
@@ -433,15 +433,15 @@ export default function ReportsPage() {
                           <Badge variant="secondary">{hosp.count}</Badge>
                         </div>
                       ))}
-                    </div>
+                      </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+              </CardContent>
+            </Card>
+          </div>
 
             {/* Daily Trends */}
-            <DailyTrendsChart data={reportData.dailyTrends} />
-          </div>
+          <DailyTrendsChart data={reportData.dailyTrends} />
+        </div>
         ) : (
           <div className="text-center py-16 bg-muted/30 rounded-lg border border-dashed">
             <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />

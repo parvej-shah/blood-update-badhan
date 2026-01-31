@@ -118,32 +118,35 @@ export function DateRangePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <div className="flex">
+      <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start" sideOffset={4}>
+        <div className="flex flex-col sm:flex-row">
           {/* Presets sidebar */}
-          <div className="border-r p-2 space-y-1">
+          <div className="border-b sm:border-b-0 sm:border-r p-2 space-y-1">
             <p className="text-xs font-medium text-muted-foreground px-2 py-1">Quick select</p>
-            {presets.map((preset) => (
-              <Button
-                key={preset.label}
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs"
-                onClick={() => handlePreset(preset)}
-              >
-                {preset.label}
-              </Button>
-            ))}
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-1">
+              {presets.map((preset) => (
+                <Button
+                  key={preset.label}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs touch-target-mobile"
+                  onClick={() => handlePreset(preset)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
           </div>
           {/* Calendar */}
-          <div className="p-0">
+          <div className="p-0 overflow-x-auto">
             <Calendar
               mode="range"
               defaultMonth={fromDate}
               selected={dateRange}
               onSelect={handleSelect}
-              numberOfMonths={2}
+              numberOfMonths={typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2}
               initialFocus
+              className="touch-target-mobile"
             />
           </div>
         </div>
