@@ -116,6 +116,68 @@ export function normalizePhone(phone: string): string {
   return cleaned
 }
 
+/**
+ * Normalize referrer names to handle variations like:
+ * - "md rowshon" vs "Rowshon" vs "Md. Rowshon"
+ * - "muhammad ali" vs "Muhammad Ali" vs "Md Ali"
+ * - Case variations and spacing
+ * 
+ * This ensures that the same person is recognized regardless of how their name is entered.
+ */
+export function normalizeReferrer(referrer: string | null | undefined): string | null {
+  if (!referrer) return null
+  
+  // Trim and normalize whitespace
+  let normalized = referrer.trim().replace(/\s+/g, ' ')
+  
+  if (!normalized) return null
+  
+  // Common prefixes to remove (case-insensitive)
+  // These are common in Bangladesh/Islamic names
+  const prefixes = [
+    /^md\.?\s+/i,           // md, md., MD, MD.
+    /^m\.?\s+/i,            // m, m., M, M.
+    /^muhammad\s+/i,        // muhammad, Muhammad
+    /^mohammad\s+/i,        // mohammad, Mohammad
+    /^mohammed\s+/i,        // mohammed, Mohammed
+    /^mohd\.?\s+/i,         // mohd, mohd., Mohd
+    /^moh\.?\s+/i,          // moh, moh., Moh
+    /^engr\.?\s+/i,         // engr, engr., Engr (Engineer)
+    /^dr\.?\s+/i,           // dr, dr., Dr (Doctor)
+    /^prof\.?\s+/i,         // prof, prof., Prof (Professor)
+    /^mr\.?\s+/i,           // mr, mr., Mr
+    /^mrs\.?\s+/i,          // mrs, mrs., Mrs
+    /^miss\s+/i,            // miss, Miss
+    /^ms\.?\s+/i,           // ms, ms., Ms
+  ]
+  
+  // Remove prefixes
+  for (const prefix of prefixes) {
+    normalized = normalized.replace(prefix, '')
+  }
+  
+  // Normalize case: First letter of each word uppercase, rest lowercase
+  normalized = normalized
+    .split(' ')
+    .map(word => {
+      if (!word) return ''
+      // Handle special cases like "vai", "apu", "bhai" (common in Bangladesh)
+      const lowerWord = word.toLowerCase()
+      if (['vai', 'apu', 'bhai', 'bhaiya', 'dada', 'didi', 'apa'].includes(lowerWord)) {
+        return lowerWord
+      }
+      // Capitalize first letter, lowercase rest
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+    .trim()
+  
+  // Remove trailing dots and clean up
+  normalized = normalized.replace(/\.+$/, '').trim()
+  
+  return normalized || null
+}
+
 export function normalizeDate(dateStr: string): string {
   // Parse DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, MM/DD/YY, or MM/DD/YYYY
   let separator: string

@@ -1,32 +1,36 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { subMonths, startOfMonth, endOfMonth, format } from 'date-fns'
+import { subMonths, startOfMonth, format } from 'date-fns'
+
+// Helper function to parse DD-MM-YYYY to Date object
+function parseDonationDate(dateStr: string): Date | null {
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return null
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10) - 1
+  const year = parseInt(parts[2], 10)
+  const date = new Date(year, month, day)
+  return isNaN(date.getTime()) ? null : date
+}
 
 export async function GET() {
   try {
     // Get total donors
     const totalDonors = await prisma.donor.count()
 
-    // Get monthly donations for last 12 months grouped by blood group
-    const twelveMonthsAgo = subMonths(new Date(), 11)
-    const monthStart = startOfMonth(twelveMonthsAgo)
-
-    // Get all donors from last 12 months
+    // Get all donors with their donation dates
     const donors = await prisma.donor.findMany({
-      where: {
-        createdAt: {
-          gte: monthStart,
-        },
-      },
       select: {
-        createdAt: true,
+        date: true,
         bloodGroup: true,
       },
     })
 
-    // Group by month and blood group
+    // Group by month and blood group based on donation date (not createdAt)
     const monthlyData: Record<string, Record<string, number>> = {}
+    const twelveMonthsAgo = startOfMonth(subMonths(new Date(), 11))
 
+    // Initialize all 12 months
     for (let i = 0; i < 12; i++) {
       const month = startOfMonth(subMonths(new Date(), 11 - i))
       const monthKey = format(month, 'yyyy-MM')
@@ -42,8 +46,12 @@ export async function GET() {
       }
     }
 
+    // Count donations by their actual donation date
     donors.forEach((donor) => {
-      const monthKey = format(donor.createdAt, 'yyyy-MM')
+      const donorDate = parseDonationDate(donor.date)
+      if (!donorDate || donorDate < twelveMonthsAgo) return
+      
+      const monthKey = format(donorDate, 'yyyy-MM')
       if (monthlyData[monthKey] && monthlyData[monthKey][donor.bloodGroup] !== undefined) {
         monthlyData[monthKey][donor.bloodGroup]++
       }

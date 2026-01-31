@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { validateDonor, normalizePhone, normalizeDate } from '@/lib/validation'
+import { validateDonor, normalizePhone, normalizeDate, normalizeReferrer } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
     // Ensure bloodGroup is a string (after Zod transform)
     const bloodGroup = typeof data.bloodGroup === 'string' ? data.bloodGroup : String(data.bloodGroup)
 
+    // Normalize referrer name to handle variations
+    const normalizedReferrer = normalizeReferrer(data.referrer)
+
     // Prepare data for database - ensure all required fields are present
     const donorData = {
       name: (data.name || '').trim(),
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
       hospital: (data.hospital && data.hospital.trim()) ? data.hospital.trim() : 'Unknown',
       phone: normalizedPhone,
       date: normalizedDate,
-      referrer: (data.referrer && data.referrer.trim()) ? data.referrer.trim() : null,
+      referrer: normalizedReferrer,
       hallName: (data.hallName && data.hallName.trim()) ? data.hallName.trim() : null,
     }
 
@@ -143,6 +146,25 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Helper function to parse DD-MM-YYYY date string to sortable format (YYYY-MM-DD)
+function parseDonationDateToSortable(dateStr: string): string {
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return '0000-00-00'
+  const [day, month, year] = parts
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+}
+
+// Helper function to convert DD-MM-YYYY to Date object for filtering
+function parseDonationDate(dateStr: string): Date | null {
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return null
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10) - 1
+  const year = parseInt(parts[2], 10)
+  const date = new Date(year, month, day)
+  return isNaN(date.getTime()) ? null : date
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -152,6 +174,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const dateFrom = searchParams.get('dateFrom')
     const dateTo = searchParams.get('dateTo')
+    const sortBy = searchParams.get('sortBy') || 'date'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
 
     const skip = (page - 1) * limit
 
@@ -166,37 +190,68 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search } },
+        { hospital: { contains: search, mode: 'insensitive' } },
+        { batch: { contains: search, mode: 'insensitive' } },
+        { referrer: { contains: search, mode: 'insensitive' } },
       ]
-    }
-
-    if (dateFrom || dateTo) {
-      where.date = {}
-      if (dateFrom) {
-        where.date.gte = dateFrom
-      }
-      if (dateTo) {
-        where.date.lte = dateTo
-      }
     }
 
     // Get total count
     const total = await prisma.donor.count({ where })
 
-    // Get donors
-    const donors = await prisma.donor.findMany({
+    // Get all donors for date filtering and sorting (since date is stored as DD-MM-YYYY string)
+    let donors = await prisma.donor.findMany({
       where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
     })
 
+    // Filter by date range if specified (using donation date, not createdAt)
+    if (dateFrom || dateTo) {
+      const fromDate = dateFrom ? parseDonationDate(dateFrom) : null
+      const toDate = dateTo ? parseDonationDate(dateTo) : null
+
+      donors = donors.filter(donor => {
+        const donorDate = parseDonationDate(donor.date)
+        if (!donorDate) return false
+        if (fromDate && donorDate < fromDate) return false
+        if (toDate && donorDate > toDate) return false
+        return true
+      })
+    }
+
+    // Sort by donation date (default) or other fields
+    donors.sort((a, b) => {
+      let comparison = 0
+      
+      if (sortBy === 'date') {
+        const dateA = parseDonationDateToSortable(a.date)
+        const dateB = parseDonationDateToSortable(b.date)
+        comparison = dateA.localeCompare(dateB)
+      } else if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name)
+      } else if (sortBy === 'bloodGroup') {
+        comparison = a.bloodGroup.localeCompare(b.bloodGroup)
+      } else if (sortBy === 'hospital') {
+        comparison = (a.hospital || '').localeCompare(b.hospital || '')
+      } else if (sortBy === 'batch') {
+        comparison = (a.batch || '').localeCompare(b.batch || '')
+      } else if (sortBy === 'createdAt') {
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison
+    })
+
+    // Apply pagination after filtering and sorting
+    const filteredTotal = donors.length
+    const paginatedDonors = donors.slice(skip, skip + limit)
+
     return NextResponse.json({
-      donors,
+      donors: paginatedDonors,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        total: filteredTotal,
+        totalPages: Math.ceil(filteredTotal / limit),
       },
     })
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { normalizeReferrer } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,25 +41,46 @@ export async function POST(request: NextRequest) {
       bloodGroupMap[item.bloodGroup] = item._count.id
     })
 
-    // Get top 10 referrers
-    const topReferrers = await prisma.donor.groupBy({
-      by: ['referrer'],
+    // Get all donors with referrers for normalization
+    const donorsWithReferrers = await prisma.donor.findMany({
       where: {
         ...where,
         referrer: {
           not: null,
         },
       },
-      _count: {
-        id: true,
+      select: {
+        referrer: true,
       },
-      orderBy: {
-        _count: {
-          id: 'desc',
-        },
-      },
-      take: 10,
     })
+
+    // Group referrers by normalized name
+    const referrerCounts: Record<string, number> = {}
+    const referrerOriginalNames: Record<string, string> = {} // Store original name for display
+    
+    donorsWithReferrers.forEach(donor => {
+      if (donor.referrer) {
+        // Normalize the referrer name for grouping
+        const normalized = normalizeReferrer(donor.referrer)
+        if (normalized) {
+          // Use normalized name as key for counting
+          referrerCounts[normalized] = (referrerCounts[normalized] || 0) + 1
+          // Store the first original name we see for this normalized name (for display)
+          if (!referrerOriginalNames[normalized]) {
+            referrerOriginalNames[normalized] = donor.referrer
+          }
+        }
+      }
+    })
+
+    // Convert to array and sort by count
+    const topReferrers = Object.entries(referrerCounts)
+      .map(([normalized, count]) => ({
+        referrer: referrerOriginalNames[normalized] || normalized, // Use original name for display
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
 
     // Get top 5 hospitals
     const topHospitals = await prisma.donor.groupBy({
@@ -101,10 +123,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       totalDonations,
       bloodGroupBreakdown: bloodGroupMap,
-      topReferrers: topReferrers.map((item) => ({
-        referrer: item.referrer,
-        count: item._count.id,
-      })),
+      topReferrers: topReferrers, // Already in correct format { referrer, count }
       topHospitals: topHospitals.map((item) => ({
         hospital: item.hospital,
         count: item._count.id,

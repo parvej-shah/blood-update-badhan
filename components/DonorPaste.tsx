@@ -8,6 +8,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { parseFormattedText, parseBulkFormattedText } from "@/lib/parser"
 import { Badge } from "@/components/ui/badge"
 import { ParsingFeedbackDialog } from "@/components/ParsingFeedbackDialog"
+import { cn } from "@/lib/utils"
+import { 
+  FileText, 
+  Eye, 
+  CheckCircle2, 
+  AlertCircle, 
+  Users, 
+  Send,
+  MessageSquare,
+  Droplets
+} from "lucide-react"
+
+const bloodGroupColors: Record<string, string> = {
+  "A+": "bg-red-100 text-red-700 border-red-200",
+  "A-": "bg-red-50 text-red-600 border-red-100",
+  "B+": "bg-orange-100 text-orange-700 border-orange-200",
+  "B-": "bg-orange-50 text-orange-600 border-orange-100",
+  "AB+": "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "AB-": "bg-emerald-50 text-emerald-600 border-emerald-100",
+  "O+": "bg-blue-100 text-blue-700 border-blue-200",
+  "O-": "bg-blue-50 text-blue-600 border-blue-100",
+}
 
 export function DonorPaste() {
   const [text, setText] = useState("")
@@ -149,145 +171,201 @@ export function DonorPaste() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Paste Formatted Text</CardTitle>
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="space-y-1 pb-4">
+        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          Paste Formatted Text
+        </CardTitle>
         <CardDescription>
-          Paste the formatted donor information below. You can paste single or multiple donors (separated by blank lines).
-          <br />
-          <br />
-          Expected format:
-          <br />
-          Donor Name: ...
-          <br />
-          Blood Group: ... (supports B(+ve), B(positive), etc.)
-          <br />
-          Batch: ...
-          <br />
-          Hospital: ...
-          <br />
-          Phone: ...
-          <br />
-          Date: ... (supports DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY)
-          <br />
-          Referrer: ...
-          <br />
-          Hall Name: ...
-          <br />
-          <br />
-          For multiple donors, separate entries with blank lines.
+          Paste pre-formatted donor information for quick entry
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="paste-text">Formatted Text</Label>
+      <CardContent className="space-y-5">
+        {/* Format Guide */}
+        <div className="p-4 bg-muted/50 rounded-lg border text-sm space-y-2">
+          <p className="font-medium text-foreground">Expected format:</p>
+          <div className="font-mono text-xs bg-background p-3 rounded border space-y-0.5 text-muted-foreground">
+            <div>Donor Name: John Doe</div>
+            <div>Blood Group: B+ <span className="text-muted-foreground/60">(or B(+ve), B(positive))</span></div>
+            <div>Batch: 2020</div>
+            <div>Hospital: Dhaka Medical</div>
+            <div>Phone: 01712345678</div>
+            <div>Date: 25-01-2026 <span className="text-muted-foreground/60">(DD-MM-YYYY)</span></div>
+            <div>Referrer: Jane Smith</div>
+            <div>Hall Name: Shahid Hall</div>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            For multiple donors, separate entries with blank lines.
+          </p>
+        </div>
+
+        {/* Text Input */}
+        <div className="space-y-2">
+          <Label htmlFor="paste-text" className="flex items-center gap-2 text-sm font-medium">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            Formatted Text
+          </Label>
           <Textarea
             id="paste-text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste formatted text here..."
-            className="min-h-32"
+            placeholder="Paste your formatted donor information here..."
+            className="min-h-40 font-mono text-sm"
           />
         </div>
 
-        <Button onClick={handleParse} variant="outline" className="w-full" disabled={loading}>
-          {loading ? "Parsing..." : "Parse & Preview"}
+        <Button 
+          onClick={handleParse} 
+          variant="outline" 
+          className="w-full h-11" 
+          disabled={loading || !text.trim()}
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              Parsing...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Parse & Preview
+            </span>
+          )}
         </Button>
 
         {error && (
-          <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-            {error}
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-sm text-destructive">{error}</div>
           </div>
         )}
 
         {parsedData && (
-          <Card>
-            <CardHeader>
+          <Card className="border shadow-md">
+            <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle>
-                  Preview {isBulk && Array.isArray(parsedData) && `(${parsedData.length} donors)`}
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  Preview
+                  {isBulk && Array.isArray(parsedData) && (
+                    <Badge variant="secondary" className="ml-2">
+                      <Users className="h-3 w-3 mr-1" />
+                      {parsedData.length} donors
+                    </Badge>
+                  )}
                 </CardTitle>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setShowFeedback(true)}
-                  className="text-xs"
+                  className="text-xs gap-1.5"
                 >
-                  Provide Feedback
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Feedback
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {isBulk && Array.isArray(parsedData) ? (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
                   {parsedData.map((donor, index) => (
-                    <div key={index} className="p-3 border rounded-md">
-                      <div className="text-xs text-muted-foreground mb-2">Donor #{index + 1}</div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <span className="font-medium">Name:</span> {donor.name || "N/A"}
+                    <div key={index} className="p-4 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Donor #{index + 1}
+                        </span>
+                        {donor.bloodGroup && (
+                          <span className={cn(
+                            "inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-bold border",
+                            bloodGroupColors[donor.bloodGroup] || "bg-muted text-muted-foreground"
+                          )}>
+                            {donor.bloodGroup}
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                        <div className="flex gap-1">
+                          <span className="text-muted-foreground">Name:</span>
+                          <span className="font-medium truncate">{donor.name || "N/A"}</span>
                         </div>
-                        <div>
-                          <span className="font-medium">Blood Group:</span>{" "}
-                          <Badge>{donor.bloodGroup || "N/A"}</Badge>
+                        <div className="flex gap-1">
+                          <span className="text-muted-foreground">Phone:</span>
+                          <span>{donor.phone || "N/A"}</span>
                         </div>
-                        <div>
-                          <span className="font-medium">Batch:</span> {donor.batch || "N/A"}
+                        <div className="flex gap-1">
+                          <span className="text-muted-foreground">Date:</span>
+                          <span>{donor.date || "N/A"}</span>
                         </div>
-                        <div>
-                          <span className="font-medium">Hospital:</span> {donor.hospital || "N/A"}
-                        </div>
-                        <div>
-                          <span className="font-medium">Phone:</span> {donor.phone || "N/A"}
-                        </div>
-                        <div>
-                          <span className="font-medium">Date:</span> {donor.date || "N/A"}
-                        </div>
-                        <div className="col-span-2">
-                          <span className="font-medium">Referrer:</span> {donor.referrer || "N/A"}
-                        </div>
-                        <div className="col-span-2">
-                          <span className="font-medium">Hall Name:</span> {donor.hallName || "N/A"}
+                        <div className="flex gap-1">
+                          <span className="text-muted-foreground">Hospital:</span>
+                          <span className="truncate">{donor.hospital || "N/A"}</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="font-medium">Name:</span> {parsedData.name || "N/A"}
+                <div className="p-4 border rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-medium">{parsedData.name || "N/A"}</span>
+                    {parsedData.bloodGroup && (
+                      <span className={cn(
+                        "inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-bold border",
+                        bloodGroupColors[parsedData.bloodGroup] || "bg-muted text-muted-foreground"
+                      )}>
+                        <Droplets className="h-3.5 w-3.5 mr-1.5" />
+                        {parsedData.bloodGroup}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-medium">Blood Group:</span>{" "}
-                    <Badge>{parsedData.bloodGroup || "N/A"}</Badge>
-                  </div>
-                  <div>
-                    <span className="font-medium">Batch:</span> {parsedData.batch || "N/A"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Hospital:</span> {parsedData.hospital || "N/A"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Phone:</span> {parsedData.phone || "N/A"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Date:</span> {parsedData.date || "N/A"}
-                  </div>
-                  <div className="col-span-2">
-                    <span className="font-medium">Referrer:</span> {parsedData.referrer || "N/A"}
-                  </div>
-                  <div className="col-span-2">
-                    <span className="font-medium">Hall Name:</span> {parsedData.hallName || "N/A"}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">Phone:</span>
+                      <span>{parsedData.phone || "N/A"}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">Date:</span>
+                      <span>{parsedData.date || "N/A"}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">Batch:</span>
+                      <span>{parsedData.batch || "N/A"}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-muted-foreground">Hospital:</span>
+                      <span className="truncate">{parsedData.hospital || "N/A"}</span>
+                    </div>
+                    <div className="flex gap-2 col-span-2">
+                      <span className="text-muted-foreground">Referrer:</span>
+                      <span>{parsedData.referrer || "N/A"}</span>
+                    </div>
+                    <div className="flex gap-2 col-span-2">
+                      <span className="text-muted-foreground">Hall:</span>
+                      <span>{parsedData.hallName || "N/A"}</span>
+                    </div>
                   </div>
                 </div>
               )}
-              <Button onClick={handleSubmit} disabled={loading} className="w-full mt-4">
-                {loading
-                  ? "Submitting..."
-                  : isBulk && Array.isArray(parsedData)
-                  ? `Submit ${parsedData.length} Donors`
-                  : "Submit"}
+              
+              <Button 
+                onClick={handleSubmit} 
+                disabled={loading} 
+                className="w-full h-12 text-base font-semibold bg-red-600 hover:bg-red-700"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Submitting...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    {isBulk && Array.isArray(parsedData)
+                      ? `Submit ${parsedData.length} Donors`
+                      : "Submit Donation Record"}
+                  </span>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -309,4 +387,3 @@ export function DonorPaste() {
     </Card>
   )
 }
-

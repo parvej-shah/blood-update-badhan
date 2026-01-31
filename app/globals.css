@@ -48,79 +48,274 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Light mode - Warm, blood donation themed palette */
+  --background: oklch(0.99 0.002 60);
+  --foreground: oklch(0.15 0.01 30);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0.01 30);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.5 0.22 27);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.15 0.01 30);
+  
+  /* Primary: Blood red */
+  --primary: oklch(0.55 0.22 25);
+  --primary-foreground: oklch(0.99 0 0);
+  
+  /* Secondary: Warm gray */
+  --secondary: oklch(0.96 0.005 60);
+  --secondary-foreground: oklch(0.25 0.01 30);
+  
+  /* Muted: Soft background */
+  --muted: oklch(0.96 0.005 60);
+  --muted-foreground: oklch(0.50 0.01 30);
+  
+  /* Accent: Warm highlight */
+  --accent: oklch(0.95 0.02 30);
+  --accent-foreground: oklch(0.20 0.01 30);
+  
+  /* Destructive: Alert red */
+  --destructive: oklch(0.55 0.22 25);
+  
+  /* Borders & Inputs */
+  --border: oklch(0.90 0.005 60);
+  --input: oklch(0.90 0.005 60);
+  --ring: oklch(0.55 0.22 25);
+  
+  /* Charts - Blood themed gradients */
+  --chart-1: oklch(0.55 0.22 25);
+  --chart-2: oklch(0.60 0.18 30);
+  --chart-3: oklch(0.65 0.15 35);
+  --chart-4: oklch(0.55 0.15 45);
+  --chart-5: oklch(0.50 0.12 50);
+  
+  --radius: 0.75rem;
+  
+  /* Sidebar */
+  --sidebar: oklch(0.99 0.002 60);
+  --sidebar-foreground: oklch(0.15 0.01 30);
+  --sidebar-primary: oklch(0.55 0.22 25);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.02 30);
+  --sidebar-accent-foreground: oklch(0.20 0.01 30);
+  --sidebar-border: oklch(0.90 0.005 60);
+  --sidebar-ring: oklch(0.55 0.22 25);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.6 0.22 27);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Dark mode - Deep, warm dark palette */
+  --background: oklch(0.13 0.01 30);
+  --foreground: oklch(0.95 0.005 60);
+  --card: oklch(0.17 0.01 30);
+  --card-foreground: oklch(0.95 0.005 60);
+  --popover: oklch(0.17 0.01 30);
+  --popover-foreground: oklch(0.95 0.005 60);
+  
+  /* Primary: Vibrant red in dark mode */
+  --primary: oklch(0.65 0.22 25);
+  --primary-foreground: oklch(0.99 0 0);
+  
+  /* Secondary */
+  --secondary: oklch(0.22 0.01 30);
+  --secondary-foreground: oklch(0.95 0.005 60);
+  
+  /* Muted */
+  --muted: oklch(0.22 0.01 30);
+  --muted-foreground: oklch(0.65 0.01 60);
+  
+  /* Accent */
+  --accent: oklch(0.28 0.02 30);
+  --accent-foreground: oklch(0.95 0.005 60);
+  
+  /* Destructive */
+  --destructive: oklch(0.60 0.20 25);
+  
+  /* Borders & Inputs */
+  --border: oklch(0.25 0.01 30);
+  --input: oklch(0.25 0.01 30);
+  --ring: oklch(0.65 0.22 25);
+  
+  /* Charts */
+  --chart-1: oklch(0.65 0.22 25);
+  --chart-2: oklch(0.60 0.18 30);
+  --chart-3: oklch(0.55 0.15 35);
+  --chart-4: oklch(0.50 0.12 45);
+  --chart-5: oklch(0.45 0.10 50);
+  
+  /* Sidebar */
+  --sidebar: oklch(0.15 0.01 30);
+  --sidebar-foreground: oklch(0.95 0.005 60);
+  --sidebar-primary: oklch(0.65 0.22 25);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.22 0.01 30);
+  --sidebar-accent-foreground: oklch(0.95 0.005 60);
+  --sidebar-border: oklch(0.25 0.01 30);
+  --sidebar-ring: oklch(0.65 0.22 25);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Improve focus states */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  
+  /* Better selection colors */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer components {
+  /* Shimmer animation for skeletons */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.9 0 0 / 0.5) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  
+  /* Smooth page transitions */
+  .page-enter {
+    animation: pageEnter 0.3s ease-out forwards;
+  }
+  
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lg -translate-y-0.5;
+  }
+  
+  /* Blood drop animation */
+  .blood-drop {
+    animation: bloodDrop 2s ease-in-out infinite;
+  }
+  
+  @keyframes bloodDrop {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  
+  /* Pulse animation for live indicators */
+  .pulse-live {
+    animation: pulseLive 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulseLive {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent;
+  }
+  
+  /* Responsive table scrolling */
+  .table-scroll {
+    @apply overflow-x-auto;
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.8 0 0) transparent;
+  }
+  
+  .table-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .table-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: oklch(0.8 0 0);
+    border-radius: 3px;
+  }
+  
+  .table-scroll::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.7 0 0);
+  }
+}
+
+@layer utilities {
+  /* Text balance for better typography */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Glass effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-sm;
+  }
+  
+  /* Subtle shadow */
+  .shadow-subtle {
+    box-shadow: 
+      0 1px 2px oklch(0 0 0 / 0.04),
+      0 2px 4px oklch(0 0 0 / 0.04),
+      0 4px 8px oklch(0 0 0 / 0.04);
+  }
+  
+  /* Red glow for important elements */
+  .glow-red {
+    box-shadow: 0 0 20px oklch(0.55 0.22 25 / 0.3);
+  }
+  
+  /* Smooth scroll */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Calendar specific styles */
+.rdp {
+  --rdp-accent-color: oklch(0.55 0.22 25);
+  --rdp-background-color: oklch(0.55 0.22 25 / 0.1);
+  --rdp-accent-color-dark: oklch(0.65 0.22 25);
+  --rdp-background-color-dark: oklch(0.65 0.22 25 / 0.1);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
   }
 }

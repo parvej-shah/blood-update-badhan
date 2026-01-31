@@ -1,24 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { Toaster } from "@/components/ui/toast";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Blood Donation Management System",
-  description: "Manage and track blood donation records",
+  title: "Badhan - Blood Donation Management",
+  description: "Volunteer blood donation management system for Badhan organization in Bangladesh",
+  keywords: ["blood donation", "Bangladesh", "Badhan", "volunteer", "healthcare"],
+  authors: [{ name: "Badhan" }],
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -27,12 +32,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+      <body className="antialiased min-h-screen bg-background font-sans">
         <Navigation />
-        {children}
+        <main className="page-enter">
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>

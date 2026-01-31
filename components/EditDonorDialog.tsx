@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DatePicker } from "@/components/DatePicker"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { User, Droplets, Building2, Phone, Calendar, UserCheck, Home } from "lucide-react"
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
@@ -129,121 +131,171 @@ export function EditDonorDialog({ donor, open, onOpenChange, onSuccess }: EditDo
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Edit Donor</AlertDialogTitle>
+          <AlertDialogTitle className="text-xl font-bold">Edit Donor Record</AlertDialogTitle>
           <AlertDialogDescription>
-            Update the donor information below.
+            Update the donor information below. Changes will be saved immediately.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 py-2">
           {error && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-name">Donor Name *</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Donor Name */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-name" className="flex items-center gap-2 text-sm font-medium">
+                <User className="h-4 w-4 text-muted-foreground" />
+                Donor Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 placeholder="Enter donor name"
+                className="h-10"
               />
             </div>
 
-            <div>
-              <Label htmlFor="edit-bloodGroup">Blood Group *</Label>
+            {/* Blood Group */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-bloodGroup" className="flex items-center gap-2 text-sm font-medium">
+                <Droplets className="h-4 w-4 text-red-500" />
+                Blood Group <span className="text-destructive">*</span>
+              </Label>
               <Select
                 value={formData.bloodGroup}
                 onValueChange={(value) => setFormData({ ...formData, bloodGroup: value })}
                 required
               >
-                <SelectTrigger id="edit-bloodGroup">
+                <SelectTrigger id="edit-bloodGroup" className="h-10">
                   <SelectValue placeholder="Select blood group" />
                 </SelectTrigger>
                 <SelectContent>
                   {bloodGroups.map((bg) => (
-                    <SelectItem key={bg} value={bg}>
-                      {bg}
+                    <SelectItem key={bg} value={bg} className="font-medium">
+                      <span className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-6 rounded bg-red-100 text-red-700 text-xs font-bold">
+                          {bg}
+                        </span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="edit-batch">Batch</Label>
-              <Input
-                id="edit-batch"
-                value={formData.batch}
-                onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-                placeholder="Enter batch"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-hospital">Hospital</Label>
-              <Input
-                id="edit-hospital"
-                value={formData.hospital}
-                onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
-                placeholder="Enter hospital name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-phone">Phone *</Label>
+            {/* Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone" className="flex items-center gap-2 text-sm font-medium">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                Phone <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="edit-phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
-                placeholder="01XXXXXXXXX or +8801XXXXXXXXX"
+                placeholder="01XXXXXXXXX"
+                className="h-10"
               />
             </div>
 
-            <div>
-              <Label htmlFor="edit-date">Date *</Label>
-              <Input
-                id="edit-date"
+            {/* Date */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-date" className="flex items-center gap-2 text-sm font-medium">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                Donation Date <span className="text-destructive">*</span>
+              </Label>
+              <DatePicker
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-                placeholder="DD-MM-YYYY, DD.MM.YYYY, or M/D/YYYY"
+                onChange={(date) => setFormData({ ...formData, date })}
+                placeholder="Select donation date"
               />
             </div>
 
-            <div>
-              <Label htmlFor="edit-referrer">Referrer</Label>
+            {/* Hospital */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-hospital" className="flex items-center gap-2 text-sm font-medium">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                Hospital
+              </Label>
+              <Input
+                id="edit-hospital"
+                value={formData.hospital}
+                onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
+                placeholder="Enter hospital name"
+                className="h-10"
+              />
+            </div>
+
+            {/* Batch */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-batch" className="text-sm font-medium">
+                Batch
+              </Label>
+              <Input
+                id="edit-batch"
+                value={formData.batch}
+                onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                placeholder="Enter batch"
+                className="h-10"
+              />
+            </div>
+
+            {/* Referrer */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-referrer" className="flex items-center gap-2 text-sm font-medium">
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+                Referrer
+              </Label>
               <Input
                 id="edit-referrer"
                 value={formData.referrer}
                 onChange={(e) => setFormData({ ...formData, referrer: e.target.value })}
                 placeholder="Enter referrer name"
+                className="h-10"
               />
             </div>
 
-            <div>
-              <Label htmlFor="edit-hallName">Hall Name</Label>
+            {/* Hall Name */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-hallName" className="flex items-center gap-2 text-sm font-medium">
+                <Home className="h-4 w-4 text-muted-foreground" />
+                Hall Name
+              </Label>
               <Input
                 id="edit-hallName"
                 value={formData.hallName}
                 onChange={(e) => setFormData({ ...formData, hallName: e.target.value })}
                 placeholder="Enter hall name"
+                className="h-10"
               />
             </div>
           </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel type="button" disabled={loading}>
+          <AlertDialogFooter className="pt-4">
+            <AlertDialogCancel type="button" disabled={loading} className="h-10">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Donor"}
+            <AlertDialogAction 
+              type="submit" 
+              disabled={loading}
+              className="h-10 bg-red-600 hover:bg-red-700"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Updating...
+                </span>
+              ) : (
+                "Update Donor"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

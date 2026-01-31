@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { validateDonor, normalizePhone, normalizeDate } from '@/lib/validation'
+import { validateDonor, normalizePhone, normalizeDate, normalizeReferrer } from '@/lib/validation'
 import { isAdminFromHeader } from '@/lib/auth'
 
 // Check admin status from request header
@@ -65,9 +65,10 @@ export async function PUT(
 
     const data = validation.data!
 
-    // Normalize phone and date
+    // Normalize phone, date, and referrer
     const normalizedPhone = normalizePhone(data.phone)
     const normalizedDate = normalizeDate(data.date)
+    const normalizedReferrer = normalizeReferrer(data.referrer)
 
     // Ensure bloodGroup is a string
     const bloodGroup = typeof data.bloodGroup === 'string' ? data.bloodGroup : String(data.bloodGroup)
@@ -117,7 +118,7 @@ export async function PUT(
       hospital: (data.hospital && data.hospital.trim()) ? data.hospital.trim() : 'Unknown',
       phone: normalizedPhone,
       date: normalizedDate,
-      referrer: (data.referrer && data.referrer.trim()) ? data.referrer.trim() : null,
+      referrer: normalizedReferrer,
       hallName: (data.hallName && data.hallName.trim()) ? data.hallName.trim() : null,
     }
 
