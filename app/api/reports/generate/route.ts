@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { normalizeReferrer } from '@/lib/validation'
+import { differenceInDays, subDays, format } from 'date-fns'
+
+// Helper function to parse DD-MM-YYYY to Date object
+function parseDonationDate(dateStr: string): Date | null {
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return null
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10) - 1
+  const year = parseInt(parts[2], 10)
+  const date = new Date(year, month, day)
+  return isNaN(date.getTime()) ? null : date
+}
+
+// Helper function to format Date to DD-MM-YYYY
+function formatDateToString(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}-${month}-${year}`
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -101,11 +121,140 @@ export async function POST(request: NextRequest) {
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date))
 
+    // Calculate Peak Performance Metrics
+    const dayOfWeekCounts: Record<string, number> = {}
+    const weekOfMonthCounts: Record<string, number> = {}
+    
+    allDonors.forEach((donor) => {
+      const date = parseDonationDate(donor.date)
+      if (!date) return
+      
+      // Day of week (0 = Sunday, 1 = Monday, etc.)
+      const dayOfWeek = date.getDay()
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      const dayName = dayNames[dayOfWeek]
+      dayOfWeekCounts[dayName] = (dayOfWeekCounts[dayName] || 0) + 1
+      
+      // Week of month (1-5)
+      const weekOfMonth = Math.ceil(date.getDate() / 7)
+      const weekKey = `Week ${weekOfMonth}`
+      weekOfMonthCounts[weekKey] = (weekOfMonthCounts[weekKey] || 0) + 1
+    })
+    
+    // Find busiest day of week
+    const busiestDayOfWeek = Object.entries(dayOfWeekCounts)
+      .sort((a, b) => b[1] - a[1])[0] || null
+    
+    // Find busiest week of month
+    const busiestWeekOfMonth = Object.entries(weekOfMonthCounts)
+      .sort((a, b) => b[1] - a[1])[0] || null
+    
+    // Find peak donation day (single day with most donations)
+    const peakDay = dailyTrendsArray
+      .sort((a, b) => b.count - a.count)[0] || null
+
+    // Calculate Growth Metrics (compare with previous period)
+    let growthMetrics = null
+    
+    if (dateFrom && dateTo) {
+      const currentStart = parseDonationDate(dateFrom)
+      const currentEnd = parseDonationDate(dateTo)
+      
+      if (currentStart && currentEnd) {
+        // Calculate period duration
+        const periodDays = differenceInDays(currentEnd, currentStart) + 1
+        
+        // Calculate previous period (same duration, shifted back)
+        const previousEnd = subDays(currentStart, 1)
+        const previousStart = subDays(previousEnd, periodDays - 1)
+        
+        const previousDateFrom = formatDateToString(previousStart)
+        const previousDateTo = formatDateToString(previousEnd)
+        
+        // Build base where clause (without date filters, since we'll filter in memory)
+        const baseWhere: any = {}
+        if (bloodGroup && bloodGroup !== 'all') {
+          baseWhere.bloodGroup = bloodGroup
+        }
+        
+        // Fetch all donors for previous period (we need to filter by date in memory)
+        // because date is stored as DD-MM-YYYY string and string comparison doesn't work correctly
+        const allDonorsForComparison = await prisma.donor.findMany({
+          where: baseWhere,
+          select: {
+            date: true,
+            bloodGroup: true,
+          },
+        })
+        
+        // Filter previous period donors in memory
+        const previousPeriodDonors = allDonorsForComparison.filter(donor => {
+          const donorDate = parseDonationDate(donor.date)
+          if (!donorDate) return false
+          return donorDate >= previousStart && donorDate <= previousEnd
+        })
+        
+        const previousTotalDonations = previousPeriodDonors.length
+        
+        // Calculate growth percentage
+        const growthPercentage = previousTotalDonations > 0
+          ? ((totalDonations - previousTotalDonations) / previousTotalDonations) * 100
+          : totalDonations > 0 ? 100 : 0
+        
+        // Calculate previous period blood group breakdown
+        const previousBloodGroupMap: Record<string, number> = {}
+        previousPeriodDonors.forEach(donor => {
+          previousBloodGroupMap[donor.bloodGroup] = (previousBloodGroupMap[donor.bloodGroup] || 0) + 1
+        })
+        
+        // Calculate blood group growth
+        const bloodGroupGrowth: Record<string, { current: number; previous: number; growth: number }> = {}
+        const allBloodGroups = new Set([...Object.keys(bloodGroupMap), ...Object.keys(previousBloodGroupMap)])
+        
+        allBloodGroups.forEach(bg => {
+          const current = bloodGroupMap[bg] || 0
+          const previous = previousBloodGroupMap[bg] || 0
+          const growth = previous > 0 ? ((current - previous) / previous) * 100 : (current > 0 ? 100 : 0)
+          bloodGroupGrowth[bg] = { current, previous, growth }
+        })
+        
+        growthMetrics = {
+          currentPeriod: {
+            totalDonations,
+            dateFrom,
+            dateTo,
+          },
+          previousPeriod: {
+            totalDonations: previousTotalDonations,
+            dateFrom: previousDateFrom,
+            dateTo: previousDateTo,
+          },
+          growthPercentage: Math.round(growthPercentage * 100) / 100, // Round to 2 decimal places
+          bloodGroupGrowth,
+        }
+      }
+    }
+
     return NextResponse.json({
       totalDonations,
       bloodGroupBreakdown: bloodGroupMap,
       topReferrers: topReferrers, // Already in correct format { referrer, count }
       dailyTrends: dailyTrendsArray,
+      peakPerformance: {
+        busiestDayOfWeek: busiestDayOfWeek ? {
+          day: busiestDayOfWeek[0],
+          count: busiestDayOfWeek[1]
+        } : null,
+        busiestWeekOfMonth: busiestWeekOfMonth ? {
+          week: busiestWeekOfMonth[0],
+          count: busiestWeekOfMonth[1]
+        } : null,
+        peakDay: peakDay ? {
+          date: peakDay.date,
+          count: peakDay.count
+        } : null,
+      },
+      growthMetrics,
     })
   } catch (error) {
     console.error('Error generating report:', error)
