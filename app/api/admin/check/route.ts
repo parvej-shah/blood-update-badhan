@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const admin = isAdminFromHeader(request)
     return NextResponse.json({ isAdmin: admin })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to check admin status' },
       { status: 500 }

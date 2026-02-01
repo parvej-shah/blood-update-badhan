@@ -44,12 +44,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Calculate 4 months ago threshold (as DD-MM-YYYY string for comparison)
-    const fourMonthsAgo = subMonths(new Date(), 4)
-    const fourMonthsAgoStr = `${String(fourMonthsAgo.getDate()).padStart(2, '0')}-${String(fourMonthsAgo.getMonth() + 1).padStart(2, '0')}-${fourMonthsAgo.getFullYear()}`
+    // Calculate 4 months ago threshold for date comparison
+    const fourMonthsAgoDate = subMonths(new Date(), 4)
 
-    // Get all donors with the specified blood group, ordered by date descending
-    // This ensures we process the most recent donation first for each phone number
+    // Get all donors with the specified blood group
+    // Note: We can't use Prisma orderBy on date field (DD-MM-YYYY string) as it won't sort correctly
+    // We'll fetch all and sort in memory after parsing dates
     const donors = await prisma.donor.findMany({
       where: {
         bloodGroup: bloodGroup,
@@ -62,26 +62,30 @@ export async function GET(request: NextRequest) {
         hallName: true,
         date: true,
       },
-      orderBy: {
-        date: 'desc', // Most recent first - helps with grouping optimization
-      },
+    })
+
+    // Sort by date descending (most recent first) - parse dates for correct sorting
+    donors.sort((a, b) => {
+      const dateA = parseDonationDate(a.date)
+      const dateB = parseDonationDate(b.date)
+      if (!dateA && !dateB) return 0
+      if (!dateA) return 1
+      if (!dateB) return -1
+      return dateB.getTime() - dateA.getTime() // Descending order
     })
 
     // Group by phone number and get the most recent donation for each donor
-    // Since we ordered by date desc, the first occurrence of each phone is the most recent
+    // Since we sorted by date desc, the first occurrence of each phone is the most recent
     const donorMap = new Map<string, DonorRecord>()
     
     // Time complexity: O(n) - single pass through donors
     for (const donor of donors) {
-      // If we haven't seen this phone number yet, it's the most recent (due to ordering)
+      // If we haven't seen this phone number yet, it's the most recent (due to sorting)
       if (!donorMap.has(donor.phone)) {
         donorMap.set(donor.phone, donor)
       }
-      // If we've already seen it, skip (we already have the most recent due to ordering)
+      // If we've already seen it, skip (we already have the most recent due to sorting)
     }
-
-    // Calculate 4 months ago threshold for date comparison
-    const fourMonthsAgoDate = subMonths(new Date(), 4)
 
     // Filter to only include donors whose last donation was 4+ months ago
     // Time complexity: O(m) where m = unique phone numbers (m ≤ n)

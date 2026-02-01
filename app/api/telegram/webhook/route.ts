@@ -118,9 +118,11 @@ export async function POST(request: NextRequest) {
           })
           
           console.log(`✅ Sent format instructions to group ${chatId} for unformatted message`)
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('❌ Error sending format instructions:', error)
-          console.error('   Error details:', error.message, error.stack)
+          if (error instanceof Error) {
+            console.error('   Error details:', error.message, error.stack)
+          }
         }
       } else {
         console.log(`ℹ️  Message not detected as donor-related, ignoring`)
@@ -145,23 +147,24 @@ export async function POST(request: NextRequest) {
         reply_to_message_id: messageId,
         parse_mode: 'Markdown',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending Telegram response:', error)
       // Log but don't fail the webhook
     }
 
     return NextResponse.json({ ok: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error processing Telegram webhook:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
+      { error: 'Internal server error', message: errorMessage },
       { status: 500 }
     )
   }
 }
 
 // Handle GET request for webhook verification (Telegram sends this initially)
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
     message: 'Telegram webhook endpoint is active',
     timestamp: new Date().toISOString(),

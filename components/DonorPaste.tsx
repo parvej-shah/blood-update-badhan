@@ -123,7 +123,9 @@ export function DonorPaste() {
             body: JSON.stringify(formattedDonor),
           })
 
-          const data = await response.json()
+          // Use safe JSON parsing with consistent error handling
+          const { safeResponseJson } = await import('@/lib/utils')
+          const data = await safeResponseJson(response, 'donor submission')
 
           if (!response.ok) {
             // Check if it's a duplicate error

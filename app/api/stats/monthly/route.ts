@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { startOfMonth, endOfMonth, format } from 'date-fns'
+import { startOfMonth, endOfMonth } from 'date-fns'
 import { normalizeReferrer } from '@/lib/validation'
 
 // Helper function to parse DD-MM-YYYY to Date object

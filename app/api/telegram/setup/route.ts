@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
           id: botInfo.id,
           username: botInfo.username,
           first_name: botInfo.first_name,
-          can_join_groups: (botInfo as any).can_join_groups,
-          can_read_all_group_messages: (botInfo as any).can_read_all_group_messages,
+          can_join_groups: 'can_join_groups' in botInfo ? (botInfo as { can_join_groups?: boolean }).can_join_groups : undefined,
+          can_read_all_group_messages: 'can_read_all_group_messages' in botInfo ? (botInfo as { can_read_all_group_messages?: boolean }).can_read_all_group_messages : undefined,
         },
         allowedGroupIds: allowedGroups,
         webhookUrl: process.env.TELEGRAM_WEBHOOK_URL,
@@ -74,17 +74,18 @@ export async function POST(request: NextRequest) {
       { error: 'Invalid action. Use: setWebhook, deleteWebhook, getWebhookInfo, or getBotInfo' },
       { status: 400 }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in Telegram setup:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to process request', message: error.message },
+      { error: 'Failed to process request', message: errorMessage },
       { status: 500 }
     )
   }
 }
 
 // GET request to retrieve bot info
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const bot = getBotInstance()
     const botInfo = await bot.getMe()
@@ -103,10 +104,11 @@ export async function GET(request: NextRequest) {
       allowedGroupIds: allowedGroups,
       webhookUrl: process.env.TELEGRAM_WEBHOOK_URL,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting Telegram info:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to get bot info', message: error.message },
+      { error: 'Failed to get bot info', message: errorMessage },
       { status: 500 }
     )
   }

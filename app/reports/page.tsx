@@ -104,10 +104,14 @@ export default function ReportsPage() {
       })
 
       if (response.ok) {
-        const data = await response.json()
+        // Use safe JSON parsing with consistent error handling
+        const { safeResponseJson } = await import('@/lib/utils')
+        const data = await safeResponseJson(response, 'report generation')
         setReportData(data)
       } else {
-        const error = await response.json()
+        // Use safe JSON parsing for error response
+        const { safeResponseJson } = await import('@/lib/utils')
+        const error = await safeResponseJson(response, 'error response')
         if (window.toast) {
           window.toast({
             title: "Error",

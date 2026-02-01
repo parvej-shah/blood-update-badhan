@@ -154,15 +154,16 @@ export async function PUT(
     })
 
     return NextResponse.json({ success: true, donor: updatedDonor })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating donor:', error)
 
+    const prismaError = error as { code?: string; message?: string }
     let userErrorMessage = 'Failed to update donor'
-    if (error?.code === 'P2025') {
+    if (prismaError.code === 'P2025') {
       userErrorMessage = 'Donor not found'
-    } else if (error?.code === 'P2002') {
+    } else if (prismaError.code === 'P2002') {
       userErrorMessage = 'A donor with this information already exists'
-    } else if (error?.message) {
+    } else if (error instanceof Error && error.message) {
       userErrorMessage = error.message
     }
 
@@ -207,13 +208,14 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true, message: 'Donor deleted successfully' })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting donor:', error)
 
+    const prismaError = error as { code?: string; message?: string }
     let userErrorMessage = 'Failed to delete donor'
-    if (error?.code === 'P2025') {
+    if (prismaError.code === 'P2025') {
       userErrorMessage = 'Donor not found'
-    } else if (error?.message) {
+    } else if (error instanceof Error && error.message) {
       userErrorMessage = error.message
     }
 

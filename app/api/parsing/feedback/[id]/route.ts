@@ -23,7 +23,7 @@ export async function PUT(
     })
 
     return NextResponse.json(feedback)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating feedback:', error)
     return NextResponse.json(
       { error: 'Failed to update feedback' },

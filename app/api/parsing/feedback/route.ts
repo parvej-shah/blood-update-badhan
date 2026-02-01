@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import type { Prisma } from '@/lib/generated/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const feedback = await prisma.userFeedback.create({
       data: {
         rawText,
-        parsedOutput: parsedOutput as any,
+        parsedOutput: parsedOutput as Prisma.InputJsonValue,
         isCorrect,
         comment: comment || null,
         userId: userId || null,
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(feedback, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating feedback:', error)
     return NextResponse.json(
       { error: 'Failed to submit feedback' },
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     const reviewed = searchParams.get('reviewed')
 
-    const where: any = {}
+    const where: Prisma.UserFeedbackWhereInput = {}
     if (reviewed === 'false') {
       where.reviewedByAdmin = false
     } else if (reviewed === 'true') {
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error)
     return NextResponse.json(
       { error: 'Failed to fetch feedback' },

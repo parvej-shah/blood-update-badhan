@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { normalizeReferrer } from '@/lib/validation'
-import { differenceInDays, subDays, format } from 'date-fns'
+import { differenceInDays, subDays } from 'date-fns'
+import type { Prisma } from '@/lib/generated/prisma'
 
 // Helper function to parse DD-MM-YYYY to Date object
 function parseDonationDate(dateStr: string): Date | null {
@@ -27,52 +28,50 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { dateFrom, dateTo, bloodGroup } = body
 
-    // Build where clause
-    const where: any = {}
+    // Parse date filters
+    const fromDate = dateFrom ? parseDonationDate(dateFrom) : null
+    const toDate = dateTo ? parseDonationDate(dateTo) : null
 
-    if (dateFrom || dateTo) {
-      where.date = {}
-      if (dateFrom) {
-        where.date.gte = dateFrom
-      }
-      if (dateTo) {
-        where.date.lte = dateTo
-      }
-    }
-
+    // Build base where clause (only for bloodGroup, not date)
+    const baseWhere: Prisma.DonorWhereInput = {}
     if (bloodGroup && bloodGroup !== 'all') {
-      where.bloodGroup = bloodGroup
+      baseWhere.bloodGroup = bloodGroup
     }
 
-    // Get total donations
-    const totalDonations = await prisma.donor.count({ where })
-
-    // Get blood group breakdown
-    const bloodGroupBreakdown = await prisma.donor.groupBy({
-      by: ['bloodGroup'],
-      where,
-      _count: {
-        id: true,
-      },
-    })
-
-    const bloodGroupMap: Record<string, number> = {}
-    bloodGroupBreakdown.forEach((item) => {
-      bloodGroupMap[item.bloodGroup] = item._count.id
-    })
-
-    // Get all donors with referrers for normalization
-    const donorsWithReferrers = await prisma.donor.findMany({
-      where: {
-        ...where,
-        referrer: {
-          not: null,
-        },
-      },
+    // Fetch all donors (we'll filter by date in memory since date is stored as DD-MM-YYYY string)
+    const allDonors = await prisma.donor.findMany({
+      where: baseWhere,
       select: {
+        date: true,
+        bloodGroup: true,
         referrer: true,
       },
     })
+
+    // Filter donors by date range in memory
+    const filteredDonors = allDonors.filter(donor => {
+      const donorDate = parseDonationDate(donor.date)
+      if (!donorDate) return false
+      if (fromDate && donorDate < fromDate) return false
+      if (toDate && donorDate > toDate) return false
+      return true
+    })
+
+    // Get total donations
+    const totalDonations = filteredDonors.length
+
+    // Get blood group breakdown
+    const bloodGroupMap: Record<string, number> = {
+      'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0
+    }
+    filteredDonors.forEach(donor => {
+      if (bloodGroupMap[donor.bloodGroup] !== undefined) {
+        bloodGroupMap[donor.bloodGroup]++
+      }
+    })
+
+    // Get all donors with referrers for normalization
+    const donorsWithReferrers = filteredDonors.filter(donor => donor.referrer !== null)
 
     // Group referrers by normalized name
     const referrerCounts: Record<string, number> = {}
@@ -103,17 +102,11 @@ export async function POST(request: NextRequest) {
       .slice(0, 10)
 
 
-    // Get daily trends
-    const allDonors = await prisma.donor.findMany({
-      where,
-      select: {
-        date: true,
-      },
-    })
+    // Get daily trends from filtered donors
 
     // Group by date
     const dailyTrends: Record<string, number> = {}
-    allDonors.forEach((donor) => {
+    filteredDonors.forEach((donor) => {
       dailyTrends[donor.date] = (dailyTrends[donor.date] || 0) + 1
     })
 
@@ -125,7 +118,7 @@ export async function POST(request: NextRequest) {
     const dayOfWeekCounts: Record<string, number> = {}
     const weekOfMonthCounts: Record<string, number> = {}
     
-    allDonors.forEach((donor) => {
+    filteredDonors.forEach((donor) => {
       const date = parseDonationDate(donor.date)
       if (!date) return
       
@@ -172,7 +165,7 @@ export async function POST(request: NextRequest) {
         const previousDateTo = formatDateToString(previousEnd)
         
         // Build base where clause (without date filters, since we'll filter in memory)
-        const baseWhere: any = {}
+        const baseWhere: Prisma.DonorWhereInput = {}
         if (bloodGroup && bloodGroup !== 'all') {
           baseWhere.bloodGroup = bloodGroup
         }

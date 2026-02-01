@@ -1,5 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api'
 import { parseBulkFormattedText, ParsedDonorData } from './parser'
+import { safeJsonParse } from './utils'
 
 // Initialize bot instance (for sending messages)
 let botInstance: TelegramBot | null = null
@@ -203,13 +204,8 @@ export async function processDonorMessage(
         
         let data: any
         if (contentType && contentType.includes('application/json') && text) {
-          try {
-            data = JSON.parse(text)
-          } catch (parseError: any) {
-            console.error(`❌ Failed to parse JSON response:`, parseError.message)
-            console.error(`   Response text:`, text.substring(0, 200))
-            throw new Error(`Invalid JSON response from API: ${parseError.message}`)
-          }
+          // Use safe JSON parsing with consistent error handling
+          data = safeJsonParse(text, 'API response')
         } else {
           // Response is not JSON or is empty
           console.error(`❌ Unexpected response format. Status: ${response.status}`)

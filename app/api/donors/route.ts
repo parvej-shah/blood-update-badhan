@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { validateDonor, normalizePhone, normalizeDate, normalizeReferrer } from '@/lib/validation'
+import type { Prisma } from '@/lib/generated/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -93,28 +94,35 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, donor }, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Enhanced error logging
-    const errorDetails: any = {
-      message: error?.message || 'Unknown error',
-      name: error?.name,
+    const errorDetails: {
+      message: string
+      name?: string
+      code?: string
+      meta?: unknown
+      stack?: string
+    } = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      name: error instanceof Error ? error.name : undefined,
     }
 
     // Prisma-specific error details
-    if (error?.code) {
-      errorDetails.code = error.code
+    const prismaError = error as { code?: string; meta?: unknown; stack?: string }
+    if (prismaError.code) {
+      errorDetails.code = prismaError.code
     }
-    if (error?.meta) {
-      errorDetails.meta = error.meta
+    if (prismaError.meta) {
+      errorDetails.meta = prismaError.meta
     }
-    if (error?.stack && process.env.NODE_ENV === 'development') {
-      errorDetails.stack = error.stack
+    if (prismaError.stack && process.env.NODE_ENV === 'development') {
+      errorDetails.stack = prismaError.stack
     }
 
     console.error('Error creating donor:', errorDetails)
 
     // Check if error is about missing hallName column
-    const errorMessage = error?.message || ''
+    const errorMessage = error instanceof Error ? error.message : ''
     if (errorMessage.includes('Unknown argument `hallName`')) {
       return NextResponse.json(
         { 
@@ -127,11 +135,11 @@ export async function POST(request: NextRequest) {
 
     // User-friendly error messages
     let userErrorMessage = 'Failed to create donor'
-    if (error?.code === 'P2002') {
+    if (prismaError.code === 'P2002') {
       userErrorMessage = 'A donor with this information already exists (duplicate entry)'
-    } else if (error?.code === 'P1001') {
+    } else if (prismaError.code === 'P1001') {
       userErrorMessage = 'Database connection failed. Please try again later.'
-    } else if (error?.message) {
+    } else if (error instanceof Error && error.message) {
       userErrorMessage = error.message
     }
 
@@ -179,7 +187,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.DonorWhereInput = {}
 
     if (bloodGroup && bloodGroup !== 'all') {
       where.bloodGroup = bloodGroup
@@ -189,16 +197,14 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search } },
-        { hospital: { contains: search, mode: 'insensitive' } },
         { batch: { contains: search, mode: 'insensitive' } },
         { referrer: { contains: search, mode: 'insensitive' } },
+        { hallName: { contains: search, mode: 'insensitive' } },
       ]
     }
 
-    // Get total count
-    const total = await prisma.donor.count({ where })
-
     // Get all donors for date filtering and sorting (since date is stored as DD-MM-YYYY string)
+    // We fetch all matching donors first, then filter by date in memory
     let donors = await prisma.donor.findMany({
       where,
     })
