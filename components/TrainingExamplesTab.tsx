@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { checkAdminStatus } from "@/lib/auth"
+import { checkAdminStatus } from "@/lib/auth-client"
 import { ParsedDonorData } from "@/lib/parser"
 import { Plus, Edit, Trash2, TestTube } from "lucide-react"
 

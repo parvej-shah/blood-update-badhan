@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { DonorTableLoading } from "@/components/ui/skeleton-mobile"
 import { DateRangePicker } from "@/components/DateRangePicker"
 import { EditDonorDialog } from "./EditDonorDialog"
-import { checkAdminStatus } from "@/lib/auth"
+import { checkAdminStatus } from "@/lib/auth-client"
 import {
   AlertDialog,
   AlertDialogAction,

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { checkAdminStatus } from "@/lib/auth"
+import { checkAdminStatus } from "@/lib/auth-client"
 import { Loader2 } from "lucide-react"
 
 export function PatternLearningTab() {

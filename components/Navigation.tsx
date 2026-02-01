@@ -1,12 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Droplets, Home, UserPlus, BarChart3, Search } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
+import { Droplets, Home, UserPlus, BarChart3, Search, Settings, LogOut, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export function Navigation() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session, status } = useSession()
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home },
@@ -14,6 +18,24 @@ export function Navigation() {
     { href: "/search", label: "Search Donor", icon: Search },
     { href: "/reports", label: "Reports", icon: BarChart3 },
   ]
+
+  // Add admin/training links if user has appropriate role
+  const isAdmin = session?.user?.roles?.includes("admin")
+  const isModerator = session?.user?.roles?.includes("moderator") || isAdmin
+
+  if (isModerator) {
+    navItems.push({ href: "/training", label: "Training", icon: Settings })
+  }
+
+  if (isAdmin) {
+    navItems.push({ href: "/admin/users", label: "Users", icon: User })
+  }
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <nav className="hidden md:block border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 pt-safe">
@@ -52,11 +74,45 @@ export function Navigation() {
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                  <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" />
                 {item.label}
               </Link>
               )
             })}
+          </div>
+
+          {/* User Info & Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            {status === "loading" ? (
+              <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+            ) : session?.user ? (
+              <>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Welcome,</span>
+                  <span className="font-medium">{session.user.name}</span>
+                  {isAdmin && (
+                    <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="sm">
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

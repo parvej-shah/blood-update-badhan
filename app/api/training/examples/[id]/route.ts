@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { isAdminFromHeader } from '@/lib/auth'
+import { requireModerator } from '@/lib/auth'
 import { parseWithCustomModel } from '@/lib/custom-parser'
 
 export async function GET(
@@ -8,9 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const { id } = await params
     const example = await prisma.parsingExample.findUnique({
@@ -36,9 +34,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const { id } = await params
     const body = await request.json()
@@ -97,9 +93,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const { id } = await params
     await prisma.parsingExample.delete({

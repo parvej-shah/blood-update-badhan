@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminFromHeader } from '@/lib/auth'
+import { requireModerator } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { parseWithCustomModel } from '@/lib/custom-parser'
 import { ParsedDonorData } from '@/lib/parser'
 
 /**
- * Seed endpoint - can be called by admin to seed initial training data
+ * Seed endpoint - can be called by admin/moderator to seed initial training data
  * This is a simplified version - you can expand it with more examples
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     // Basic training examples (you can add more)
     const trainingExamples = [

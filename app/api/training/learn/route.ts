@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminFromHeader } from '@/lib/auth'
+import { requireModerator } from '@/lib/auth'
 import { learnPatterns } from '@/lib/pattern-learner'
 
 export async function POST(request: NextRequest) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const result = await learnPatterns()
 

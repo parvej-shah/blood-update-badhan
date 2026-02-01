@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { PWAUpdater } from "@/components/PWAUpdater";
 import { Toaster } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/next";
+import { SessionProvider } from "@/components/SessionProvider";
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -57,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head>
         {/* PWA Meta Tags */}
         <meta name="application-name" content="Badhan Blood" />
@@ -70,14 +71,16 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body className="antialiased min-h-screen bg-background font-sans">
-        <Navigation />
-        <main className="page-enter pb-16 md:pb-0">
-          {children}
-        </main>
-        <BottomNav />
-        <PWAUpdater />
-        <Toaster />
-        <Analytics />
+        <SessionProvider>
+          <Navigation />
+          <main className="page-enter pb-16 md:pb-0">
+            {children}
+          </main>
+          <BottomNav />
+          <PWAUpdater />
+          <Toaster />
+          <Analytics />
+        </SessionProvider>
       </body>
     </html>
   );

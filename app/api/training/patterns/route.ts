@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { isAdminFromHeader } from '@/lib/auth'
+import { requireModerator } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -52,9 +50,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    await requireModerator()
 
     const body = await request.json()
     const { patternType, pattern, field, confidence, usageCount, successRate, isEnabled } = body

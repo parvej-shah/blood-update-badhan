@@ -24,6 +24,10 @@ Create a `.env.local` file in the root directory with your database connection s
 DATABASE_URL="postgresql://user:password@host:port/database"
 DIRECT_URL="postgresql://user:password@host:port/database"
 
+# NextAuth.js Authentication (Required)
+NEXTAUTH_SECRET="generate-a-random-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"  # Change to your production URL in production
+
 # Telegram Bot Configuration (Optional)
 TELEGRAM_BOT_TOKEN="your_bot_token_from_botfather"
 TELEGRAM_WEBHOOK_URL="https://yourdomain.com/api/telegram/webhook"
@@ -48,6 +52,17 @@ USE_AI_PARSING="true"
 6. Paste it into `.env.local` as `DATABASE_URL` and `DIRECT_URL`
 
 **Note:** For Prisma 7, you need both `DATABASE_URL` (for connection pooling) and `DIRECT_URL` (for migrations).
+
+**NextAuth.js Setup (Required for Authentication):**
+1. Generate a secure secret for `NEXTAUTH_SECRET`:
+   ```bash
+   openssl rand -base64 32
+   ```
+   Or use an online generator: https://generate-secret.vercel.app/32
+2. Set `NEXTAUTH_URL` to your application URL:
+   - Development: `http://localhost:3000`
+   - Production: `https://yourdomain.com`
+3. **Important:** Keep `NEXTAUTH_SECRET` secure and never commit it to version control.
 
 **Telegram Bot Setup (Optional):**
 1. Create a bot by messaging [@BotFather](https://t.me/botfather) on Telegram
@@ -97,7 +112,17 @@ pnpm prisma db push
 
 **Note:** Make sure your `.env.local` file has the correct `DATABASE_URL` before running `prisma db push`.
 
-### 4. Configure Row Level Security (RLS)
+### 4. Seed Default Roles
+
+After setting up the database, seed the default roles (donor, moderator, admin):
+
+```bash
+pnpm tsx prisma/seed-roles.ts
+```
+
+This will create the three default roles in your database.
+
+### 5. Configure Row Level Security (RLS)
 
 Run the SQL commands from `prisma/rls-policies.sql` in your Supabase SQL Editor:
 
@@ -111,7 +136,7 @@ This will:
 - Allow public insert access
 - Restrict update/delete (commented out by default)
 
-### 5. Run Development Server
+### 6. Run Development Server
 
 ```bash
 pnpm dev
@@ -130,9 +155,34 @@ The application will be available at `http://localhost:3000`
 
 - **Dashboard** (`/`) - View statistics and donor records
 - **Submit Donor** (`/submit`) - Add donors via form or paste format
+- **Search Donor** (`/search`) - Search for donors by various criteria
 - **Reports** (`/reports`) - Generate custom reports with filters
+- **Login/Register** (`/login`, `/register`) - User authentication
+- **Training** (`/training`) - Manage training data (moderator/admin only)
+- **User Management** (`/admin/users`) - Manage users and roles (admin only)
 - **Telegram Bot Integration** - Automatically parse and submit donor data from Telegram groups
-- **Admin Features** - Edit and delete donor records (admin access controlled via localStorage)
+
+## Authentication System
+
+The application uses NextAuth.js v5 for authentication with:
+- Phone number and password login
+- Role-based access control (donor, moderator, admin)
+- JWT session strategy
+- Self-registration with default "donor" role
+- Admin user management
+
+### Default Roles
+
+- **donor**: Default role for all new users. Can submit and search donors.
+- **moderator**: Can moderate content and manage training data.
+- **admin**: Full access including user management.
+
+### Creating the First Admin User
+
+After seeding roles, you can create an admin user through:
+1. Self-register at `/register` (creates a donor account)
+2. Then use the admin user management page (`/admin/users`) to promote a user to admin
+3. Or directly create an admin user via the API (requires database access)
 
 ## Telegram Bot Integration
 

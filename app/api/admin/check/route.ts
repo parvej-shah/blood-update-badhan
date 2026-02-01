@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAdminFromHeader } from '@/lib/auth'
+import { isAdmin } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = isAdminFromHeader(request)
+    const admin = await isAdmin()
     return NextResponse.json({ isAdmin: admin })
   } catch (error) {
     return NextResponse.json(

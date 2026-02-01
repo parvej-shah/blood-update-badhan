@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { isAdminFromHeader } from '@/lib/auth'
+import { requireModerator } from '@/lib/auth'
 import { parseWithCustomModel } from '@/lib/custom-parser'
 import { ParsedDonorData } from '@/lib/parser'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check admin status
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Check moderator/admin status
+    await requireModerator()
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -45,10 +43,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check admin status
-    if (!isAdminFromHeader(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Check moderator/admin status
+    await requireModerator()
 
     const body = await request.json()
     const { rawText, expectedOutput } = body

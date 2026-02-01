@@ -113,6 +113,20 @@ const nextConfig: NextConfig = {
   // next-pwa uses webpack, so we need to add an empty turbopack config
   // to acknowledge we're using a webpack plugin
   turbopack: {},
+  webpack: (config, { isServer }) => {
+    // Exclude server-only modules from client bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+      };
+    }
+    return config;
+  },
 };
 
 export default withPWA(nextConfig);

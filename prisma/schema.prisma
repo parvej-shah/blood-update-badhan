@@ -78,3 +78,41 @@ model UserFeedback {
   @@map("UserFeedback")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  password  String   // Hashed password
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roles     UserRole[]
+
+  @@index([phone])
+  @@map("User")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // 'donor', 'moderator', 'admin'
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       UserRole[]
+
+  @@index([name])
+  @@map("Role")
+}
+
+model UserRole {
+  userId    String
+  roleId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("UserRole")
+}
+
