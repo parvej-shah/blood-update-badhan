@@ -1,0 +1,24 @@
+/**
+ * Type declarations for the View Transitions API
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+ */
+
+interface ViewTransition {
+  /** A Promise that fulfills once the transition animation is finished */
+  finished: Promise<void>
+  /** A Promise that fulfills once the pseudo-element tree is created and the transition animation is about to start */
+  ready: Promise<void>
+  /** A Promise that fulfills when the promise returned by the document.startViewTransition()'s callback fulfills */
+  updateCallbackDone: Promise<void>
+  /** Skips the animation part of the view transition */
+  skipTransition(): void
+}
+
+interface Document {
+  /**
+   * Starts a new view transition and returns a ViewTransition object to represent it.
+   * @param callback A callback function typically invoked to update the DOM during the view transition process
+   */
+  startViewTransition(callback?: () => Promise<void> | void): ViewTransition
+}
+

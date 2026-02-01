@@ -55,7 +55,7 @@ export async function PUT(
       if (expectedOutput) {
         let matches = 0
         let totalFields = 0
-        const fields = ['name', 'bloodGroup', 'phone', 'date', 'batch', 'hospital', 'referrer', 'hallName']
+        const fields = ['name', 'bloodGroup', 'phone', 'date', 'batch', 'referrer', 'hallName']
         
         for (const field of fields) {
           totalFields++

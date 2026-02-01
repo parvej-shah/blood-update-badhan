@@ -85,11 +85,11 @@ export function StatsCards() {
   const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 fade-in-up">
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-fade-in">
         {/* This Month */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-[#6B1E28] to-[#8B2E3C] text-white overflow-hidden relative">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-[#6B1E28] to-[#8B2E3C] text-white overflow-hidden relative hover:-translate-y-0.5">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-red-100 flex items-center gap-2">
@@ -104,7 +104,7 @@ export function StatsCards() {
         </Card>
 
         {/* All Time */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden relative">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden relative hover:-translate-y-0.5">
           <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -122,7 +122,7 @@ export function StatsCards() {
         </Card>
 
         {/* Top Referrer */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden relative">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden relative hover:-translate-y-0.5">
           <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -141,7 +141,7 @@ export function StatsCards() {
         </Card>
 
         {/* Growth Indicator */}
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden relative">
+        <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden relative hover:-translate-y-0.5">
           <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -170,7 +170,7 @@ export function StatsCards() {
           <h3 className="text-lg font-semibold">Blood Group Breakdown</h3>
           <Badge variant="secondary" className="text-xs">{currentMonth}</Badge>
         </div>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-3 stagger-fade-in">
           {bloodGroups.map((bg) => {
             const count = monthlyStats?.bloodGroupBreakdown[bg] || 0
             const colors = bloodGroupColors[bg]

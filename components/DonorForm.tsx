@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { DatePicker } from "@/components/DatePicker"
-import { User, Droplets, Building2, Phone, Calendar, UserCheck, Home } from "lucide-react"
+import { User, Droplets, Phone, Calendar, UserCheck, Home } from "lucide-react"
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
@@ -17,7 +17,6 @@ export function DonorForm() {
     name: "",
     bloodGroup: "",
     batch: "",
-    hospital: "",
     phone: "",
     date: "",
     referrer: "",
@@ -35,7 +34,6 @@ export function DonorForm() {
           body: JSON.stringify({
           ...formData,
           batch: formData.batch || "Unknown",
-          hospital: formData.hospital || "Unknown",
           referrer: formData.referrer || undefined,
           hallName: formData.hallName || undefined,
         }),
@@ -61,7 +59,6 @@ export function DonorForm() {
         name: "",
         bloodGroup: "",
         batch: "",
-        hospital: "",
         phone: "",
         date: "",
         referrer: "",
@@ -165,34 +162,18 @@ export function DonorForm() {
             />
           </div>
 
-          {/* Hospital & Batch - Two columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="hospital" className="flex items-center gap-2 text-sm font-medium">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                Hospital
-              </Label>
+          {/* Batch */}
+          <div className="space-y-2">
+            <Label htmlFor="batch" className="text-sm font-medium">
+              Batch
+            </Label>
             <Input
-              id="hospital"
-              value={formData.hospital}
-              onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
-                placeholder="Hospital name (optional)"
-                className="h-11"
+              id="batch"
+              value={formData.batch}
+              onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+              placeholder="Batch number (optional)"
+              className="h-11"
             />
-          </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="batch" className="text-sm font-medium">
-                Batch
-              </Label>
-            <Input
-                id="batch"
-                value={formData.batch}
-                onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-                placeholder="Batch number (optional)"
-                className="h-11"
-            />
-          </div>
           </div>
 
           {/* Referrer & Hall Name - Two columns */}

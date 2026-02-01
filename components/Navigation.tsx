@@ -1,9 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Droplets, Home, UserPlus, BarChart3, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { TransitionLink } from "@/components/TransitionLink"
 
 export function Navigation() {
   const pathname = usePathname()
@@ -16,11 +16,11 @@ export function Navigation() {
   ]
 
   return (
-    <nav className="hidden md:block border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 pt-safe">
+    <nav className="hidden md:block border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 pt-safe view-transition-header">
       <div className="container mx-auto px-4">
         <div className="flex h-14 md:h-16 items-center justify-between">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+          <TransitionLink href="/" className="flex items-center gap-2 md:gap-3 group">
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md group-hover:blur-lg transition-all" />
               <div className="relative flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-primary to-accent rounded-full shadow-lg">
@@ -35,14 +35,14 @@ export function Navigation() {
                 Amar Ekushey Hall Unit
               </span>
             </div>
-          </Link>
+          </TransitionLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
-              <Link
+              <TransitionLink
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -54,7 +54,7 @@ export function Navigation() {
               >
                   <Icon className="h-4 w-4" />
                 {item.label}
-              </Link>
+              </TransitionLink>
               )
             })}
           </div>

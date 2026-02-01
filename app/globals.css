@@ -225,6 +225,184 @@
     }
   }
   
+  /* Staggered fade-in for list items */
+  .stagger-fade-in > * {
+    opacity: 0;
+    animation: staggerFadeIn 0.4s ease-out forwards;
+  }
+  
+  .stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-fade-in > *:nth-child(6) { animation-delay: 250ms; }
+  .stagger-fade-in > *:nth-child(7) { animation-delay: 300ms; }
+  .stagger-fade-in > *:nth-child(8) { animation-delay: 350ms; }
+  .stagger-fade-in > *:nth-child(n+9) { animation-delay: 400ms; }
+  
+  @keyframes staggerFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Fade in up animation for content loading */
+  .fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Scale in animation for cards */
+  .scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Form animations */
+  
+  /* Error shake animation */
+  .animate-shake {
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+  }
+  
+  /* Success checkmark scale in */
+  .animate-scale-in {
+    animation: scaleInBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  @keyframes scaleInBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(-50%) scale(0);
+    }
+    50% {
+      transform: translateY(-50%) scale(1.15);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+  }
+  
+  /* Error message slide down */
+  .animate-slide-down {
+    animation: slideDown 0.2s ease-out forwards;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Input focus ring pulse */
+  .animate-ring-pulse {
+    animation: ringPulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes ringPulse {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.22 25 / 0.4); }
+    50% { box-shadow: 0 0 0 4px oklch(0.55 0.22 25 / 0); }
+  }
+  
+  /* Success animations for form completion */
+  .animate-success-circle {
+    animation: successCircle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  @keyframes successCircle {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .animate-success-ripple {
+    animation: successRipple 0.6s ease-out forwards;
+  }
+  
+  @keyframes successRipple {
+    0% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+  
+  .animate-success-check {
+    animation: successCheck 0.3s ease-out 0.2s forwards;
+    opacity: 0;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+  }
+  
+  @keyframes successCheck {
+    0% {
+      opacity: 1;
+      stroke-dashoffset: 24;
+    }
+    100% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+  }
+  
+  /* Spring press effect for buttons */
+  .spring-press {
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .spring-press:active {
+    transform: scale(0.95);
+  }
+  
   /* Card hover effects */
   .card-hover {
     @apply transition-all duration-200;
@@ -568,4 +746,61 @@ html {
     width: 0px;
     background: transparent;
   }
+}
+
+/* View Transitions API - Native page transitions */
+@view-transition {
+  navigation: auto;
+}
+
+/* Default transition for all elements */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade transition for page content */
+::view-transition-old(root) {
+  animation: fade-out 0.2s ease-out forwards;
+}
+
+::view-transition-new(root) {
+  animation: fade-in 0.25s ease-out forwards;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Shared element transitions for header */
+.view-transition-header {
+  view-transition-name: header;
+}
+
+::view-transition-old(header),
+::view-transition-new(header) {
+  animation-duration: 0.3s;
+}
+
+/* Shared element for cards during navigation */
+.view-transition-card {
+  view-transition-name: card;
+}
+
+/* Bottom nav should stay fixed during transitions */
+.view-transition-nav {
+  view-transition-name: bottom-nav;
+}
+
+::view-transition-old(bottom-nav),
+::view-transition-new(bottom-nav) {
+  animation: none;
+  mix-blend-mode: normal;
 }

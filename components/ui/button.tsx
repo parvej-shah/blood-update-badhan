@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { triggerHaptic, type HapticPattern } from "@/lib/haptics"
 
 const buttonVariants = cva(
   "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-md border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-[3px] aria-invalid:ring-[3px] [&_svg:not([class*='size-'])]:size-4 inline-flex items-center justify-center whitespace-nowrap transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none group/button select-none active:scale-[0.98]",
@@ -34,17 +35,46 @@ const buttonVariants = cva(
   }
 )
 
+// Map button variants to haptic patterns
+const variantHapticMap: Record<string, HapticPattern> = {
+  default: 'medium',
+  outline: 'light',
+  secondary: 'light',
+  ghost: 'selection',
+  destructive: 'heavy',
+  link: 'selection',
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
+  haptic = true,
+  hapticPattern,
+  onClick,
+  onPointerDown,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    /** Enable/disable haptic feedback. Default: true */
+    haptic?: boolean
+    /** Override the default haptic pattern for this button */
+    hapticPattern?: HapticPattern
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  
+  // Determine the haptic pattern based on variant or override
+  const pattern = hapticPattern ?? variantHapticMap[variant ?? 'default'] ?? 'light'
+  
+  // Handle pointer down for immediate haptic feedback
+  const handlePointerDown = React.useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    if (haptic && !props.disabled) {
+      triggerHaptic(pattern)
+    }
+    onPointerDown?.(event)
+  }, [haptic, pattern, props.disabled, onPointerDown])
 
   return (
     <Comp
@@ -52,6 +82,8 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={onClick}
+      onPointerDown={handlePointerDown}
       {...props}
     />
   )

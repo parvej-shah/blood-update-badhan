@@ -47,12 +47,6 @@ function extractRegexPatterns(examples: Array<{ rawText: string; expectedOutput:
     { regex: /\b([A-Za-z\s]+hall)\b/gi, field: 'hallName' },
   ]
   
-  // Hospital patterns
-  const hospitalPatterns = [
-    { regex: /(DMC|PG\s+hospital|PG\b|BRB\s+hospital|CMH|BUET)/gi, field: 'hospital' },
-    { regex: /(hospital|Hospital)/gi, field: 'hospital' },
-  ]
-  
   // Referrer patterns
   const referrerPatterns = [
     { regex: /Managed\s+by\s*:?\s*([A-Za-z\s]+(?:\([^)]+\))?)/gi, field: 'referrer' },
@@ -64,7 +58,6 @@ function extractRegexPatterns(examples: Array<{ rawText: string; expectedOutput:
     ...datePatterns,
     ...batchPatterns,
     ...hallPatterns,
-    ...hospitalPatterns,
     ...referrerPatterns,
   ]
   
@@ -167,7 +160,6 @@ function extractKeywordPatterns(examples: Array<{ rawText: string; expectedOutpu
     { keyword: 'Mobile:', field: 'phone' },
     { keyword: 'Date:', field: 'date' },
     { keyword: 'Batch:', field: 'batch' },
-    { keyword: 'Hospital:', field: 'hospital' },
     { keyword: 'Referrer:', field: 'referrer' },
     { keyword: 'Hall Name:', field: 'hallName' },
     { keyword: 'Managed by', field: 'referrer' },

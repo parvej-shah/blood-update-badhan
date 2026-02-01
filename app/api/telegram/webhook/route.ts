@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
         } catch (error: unknown) {
           console.error('❌ Error sending format instructions:', error)
           if (error instanceof Error) {
-            console.error('   Error details:', error.message, error.stack)
+          console.error('   Error details:', error.message, error.stack)
           }
         }
       } else {

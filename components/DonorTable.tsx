@@ -10,6 +10,8 @@ import { DonorTableLoading } from "@/components/ui/skeleton-mobile"
 import { DateRangePicker } from "@/components/DateRangePicker"
 import { EditDonorDialog } from "./EditDonorDialog"
 import { checkAdminStatus } from "@/lib/auth"
+import { usePullToRefresh } from "@/hooks/usePullToRefresh"
+import { PullToRefreshIndicator } from "@/components/PullToRefresh"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +34,6 @@ import {
   Filter,
   Users,
   Phone,
-  Building2,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -41,6 +42,7 @@ import {
   ArrowDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SwipeableCard } from "@/components/ui/swipeable-card"
 
 const bloodGroups = ["all", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
@@ -60,7 +62,6 @@ interface Donor {
   name: string
   bloodGroup: string
   batch: string | null
-  hospital: string | null
   phone: string
   date: string
   referrer: string | null
@@ -68,7 +69,7 @@ interface Donor {
   createdAt: string
 }
 
-type SortField = "date" | "name" | "bloodGroup" | "hospital" | "batch" | "createdAt"
+type SortField = "date" | "name" | "bloodGroup" | "batch" | "createdAt"
 type SortOrder = "asc" | "desc"
 
 interface SortConfig {
@@ -178,12 +179,11 @@ export function DonorTable() {
   }
 
   const handleExportCSV = () => {
-    const headers = ["Name", "Blood Group", "Batch", "Hospital", "Phone", "Donation Date", "Referrer", "Hall Name", "Added On"]
+    const headers = ["Name", "Blood Group", "Batch", "Phone", "Donation Date", "Referrer", "Hall Name", "Added On"]
     const rows = donors.map((donor) => [
       donor.name,
       donor.bloodGroup,
       donor.batch || "",
-      donor.hospital || "",
       donor.phone,
       donor.date,
       donor.referrer || "",
@@ -286,8 +286,25 @@ export function DonorTable() {
     return `${parts[0]} ${months[monthIndex]} ${parts[2]}`
   }
 
+  // Pull-to-refresh
+  const { isRefreshing, pullProgress, pullDistance, containerProps } = usePullToRefresh({
+    onRefresh: async () => {
+      await fetchDonors()
+    },
+  })
+
   return (
-    <Card className="border-0 shadow-lg">
+    <>
+      {/* Pull to refresh indicator - mobile only */}
+      <div className="md:hidden">
+        <PullToRefreshIndicator
+          isRefreshing={isRefreshing}
+          pullProgress={pullProgress}
+          pullDistance={pullDistance}
+        />
+      </div>
+      
+      <Card className="border-0 shadow-lg" {...containerProps}>
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -326,7 +343,7 @@ export function DonorTable() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-                placeholder="Search by name, phone, hospital, batch, or referrer..."
+                placeholder="Search by name, phone, batch, or referrer..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10 pr-10 h-11"
@@ -538,15 +555,6 @@ export function DonorTable() {
                           </div>
                         </th>
                         <th 
-                          className="text-left p-3 font-medium cursor-pointer hover:bg-muted/70 transition-colors hidden lg:table-cell"
-                          onClick={() => handleSort("hospital")}
-                        >
-                          <div className="flex items-center gap-1">
-                            Hospital
-                            <SortIcon field="hospital" />
-                          </div>
-                        </th>
-                        <th 
                           className="text-left p-3 font-medium cursor-pointer hover:bg-muted/70 transition-colors hidden xl:table-cell"
                           onClick={() => handleSort("batch")}
                         >
@@ -593,12 +601,6 @@ export function DonorTable() {
                               {donor.bloodGroup}
                             </span>
                           </td>
-                          <td className="p-3 hidden lg:table-cell">
-                            <div className="flex items-center gap-1.5">
-                              <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="truncate max-w-[150px]">{donor.hospital || "N/A"}</span>
-                            </div>
-                          </td>
                           <td className="p-3 hidden xl:table-cell text-muted-foreground">{donor.batch || "N/A"}</td>
                           <td className="p-3">
                             <div className="flex items-center gap-1.5">
@@ -641,10 +643,28 @@ export function DonorTable() {
                 </div>
               </div>
 
-              {/* Mobile Card View */}
-              <div className="md:hidden space-y-3">
+              {/* Mobile Card View with Swipe Actions */}
+              <div className="md:hidden space-y-3 stagger-fade-in">
                 {donors.map((donor) => (
-                  <div key={donor.id} className="p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
+                  <SwipeableCard
+                    key={donor.id}
+                    leftActions={isAdmin ? [
+                      {
+                        icon: <Edit className="h-5 w-5" />,
+                        label: "Edit",
+                        onClick: () => handleEdit(donor),
+                        variant: "primary",
+                      },
+                      {
+                        icon: <Trash2 className="h-5 w-5" />,
+                        label: "Delete",
+                        onClick: () => handleDelete(donor),
+                        variant: "destructive",
+                      },
+                    ] : []}
+                    disabled={!isAdmin}
+                    className="p-4 border rounded-lg hover:bg-muted/30 transition-all duration-200"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -665,36 +685,16 @@ export function DonorTable() {
                             <Calendar className="h-3.5 w-3.5" />
                             {formatDate(donor.date)}
                           </div>
-                          {donor.hospital && donor.hospital !== "Unknown" && (
-                            <div className="flex items-center gap-1.5">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {donor.hospital}
-                            </div>
-                          )}
                         </div>
                       </div>
+                      {/* Swipe hint for admin users */}
                       {isAdmin && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(donor)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(donor)}
-                            className="h-8 w-8 p-0 text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex items-center text-muted-foreground/40 shrink-0">
+                          <ChevronLeft className="h-4 w-4" />
                         </div>
                       )}
                     </div>
-                  </div>
+                  </SwipeableCard>
                 ))}
               </div>
 
@@ -804,5 +804,6 @@ export function DonorTable() {
         </AlertDialogContent>
       </AlertDialog>
     </Card>
+    </>
   )
 }

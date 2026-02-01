@@ -31,7 +31,6 @@ export function isUnstructuredText(text: string): boolean {
     /mobile/i,
     /donor/i,
     /batch/i,
-    /hospital/i,
     /referrer/i,
     /hall/i,
     /\b(A\+|A-|B\+|B-|AB\+|AB-|O\+|O-)\b/i, // Blood groups
@@ -80,7 +79,6 @@ export function parseFormattedText(text: string): ParsedDonorData {
     name: /Donor Name:\s*(.+)/i,
     bloodGroup: /Blood Group:\s*(.+)/i,
     batch: /Batch:\s*(.+)/i,
-    hospital: /Hospital:\s*(.+)/i,
     phone: /Phone:\s*(.+)/i,
     date: /Date:\s*(.+)/i,
     referrer: /Referrer:\s*(.+)/i,

@@ -267,11 +267,11 @@ export default function SearchDonorPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-fade-in">
                 {sortedDonors.map((donor, index) => (
                   <Card 
                     key={`${donor.phone}-${index}`} 
-                    className="border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                    className="border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-1 active:scale-[0.98]"
                   >
                     <CardContent className="p-6">
                       {/* Header with Name and Blood Group */}
