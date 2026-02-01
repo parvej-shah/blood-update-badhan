@@ -1,13 +1,14 @@
 import { StatsCards } from "@/components/StatsCards"
 import { DonorTable } from "@/components/DonorTable"
 import { MonthlyChart } from "@/components/Charts"
+import { TransitionLink } from "@/components/TransitionLink"
 import { Droplets, HeartHandshake, TrendingUp, BarChart3, Users } from "lucide-react"
 
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Modern Sleek Header */}
-      <div className="relative z-0">
+      <div className="relative z-0 view-transition-header">
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#6B1E28] via-[#7A2A36] to-[#8B3444]" />
         
@@ -19,11 +20,11 @@ export default function DashboardPage() {
         {/* Content */}
         <div className="relative container mx-auto px-4 py-6 md:py-8 pb-10 md:pb-12">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                 <Droplets className="h-5 w-5 text-white" />
               </div>
-      <div>
+              <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                   Dashboard
                 </h1>
@@ -34,13 +35,13 @@ export default function DashboardPage() {
             </div>
             
             {/* Quick Action - Desktop Only */}
-            <a 
+            <TransitionLink 
               href="/submit" 
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors border border-white/10"
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-all duration-300 border border-white/10 hover:border-white/20 hover:scale-105 active:scale-95"
             >
               <HeartHandshake className="h-4 w-4" />
               New Donation
-            </a>
+            </TransitionLink>
           </div>
         </div>
         
@@ -48,39 +49,39 @@ export default function DashboardPage() {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-background rounded-t-[2.5rem]" />
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8">
+      {/* Main Content with staggered animations */}
+      <div className="container mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8 view-transition-content">
         {/* Stats Section */}
-        <section>
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-backwards">
           <div className="flex items-center gap-3 mb-4 md:mb-6">
             <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Overview Statistics</h2>
           </div>
-      <StatsCards />
+          <StatsCards />
         </section>
 
         {/* Donor Records Section */}
-        <section>
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-backwards">
           <div className="flex items-center gap-3 mb-4 md:mb-6">
             <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <Users className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Donor Records</h2>
           </div>
-      <DonorTable />
+          <DonorTable />
         </section>
 
         {/* Charts Section */}
-        <section>
+        <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards">
           <div className="flex items-center gap-3 mb-4 md:mb-6">
             <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <BarChart3 className="h-4 w-4 text-primary" />
             </div>
             <h2 className="text-lg md:text-xl font-semibold">Donation Trends</h2>
           </div>
-      <MonthlyChart />
+          <MonthlyChart />
         </section>
       </div>
 

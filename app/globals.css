@@ -748,53 +748,159 @@ html {
   }
 }
 
-/* View Transitions API - Native page transitions */
+/* ============================================
+   View Transitions API - World-Class Page Transitions
+   ============================================ */
+
 @view-transition {
   navigation: auto;
 }
 
-/* Default transition for all elements */
+/* Transition group container */
+::view-transition-group(*) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); /* Smooth spring-like easing */
+}
+
+/* ---- Root Page Transitions ---- */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.25s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  mix-blend-mode: normal;
 }
 
-/* Fade transition for page content */
+/* Outgoing page - elegant fade and subtle scale */
 ::view-transition-old(root) {
-  animation: fade-out 0.2s ease-out forwards;
+  animation: page-fade-out 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
+/* Incoming page - smooth reveal with lift */
 ::view-transition-new(root) {
-  animation: fade-in 0.25s ease-out forwards;
+  animation: page-fade-in 0.4s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
-@keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes page-fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.98) translateY(-8px);
+    filter: blur(2px);
+  }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes page-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.01) translateY(12px);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
 }
 
-/* Shared element transitions for header */
+/* ---- Slide Variants (for directional navigation) ---- */
+@keyframes slide-out-left {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Forward navigation (going deeper) */
+html.transition-forward::view-transition-old(root) {
+  animation: slide-out-left 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html.transition-forward::view-transition-new(root) {
+  animation: slide-in-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Backward navigation (going back) */
+html.transition-backward::view-transition-old(root) {
+  animation: slide-out-right 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html.transition-backward::view-transition-new(root) {
+  animation: slide-in-left 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ---- Shared Element: Header ---- */
 .view-transition-header {
   view-transition-name: header;
 }
 
-::view-transition-old(header),
-::view-transition-new(header) {
-  animation-duration: 0.3s;
+::view-transition-group(header) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Shared element for cards during navigation */
+::view-transition-old(header),
+::view-transition-new(header) {
+  animation: none; /* Keep header stable during transitions */
+  height: 100%;
+  width: 100%;
+}
+
+/* ---- Shared Element: Cards ---- */
 .view-transition-card {
   view-transition-name: card;
 }
 
-/* Bottom nav should stay fixed during transitions */
+::view-transition-group(card) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Bottom Navigation: Fixed Position ---- */
 .view-transition-nav {
   view-transition-name: bottom-nav;
 }
@@ -803,4 +909,420 @@ html {
 ::view-transition-new(bottom-nav) {
   animation: none;
   mix-blend-mode: normal;
+  height: 100%;
+}
+
+/* ---- Content Sections with Staggered Reveal ---- */
+.view-transition-content {
+  view-transition-name: main-content;
+}
+
+::view-transition-new(main-content) {
+  animation: content-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes content-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    clip-path: inset(10% 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ---- Hero/Featured Element Morphing ---- */
+.view-transition-hero {
+  view-transition-name: hero;
+}
+
+::view-transition-group(hero) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Subtle Crossfade for Images ---- */
+.view-transition-image {
+  view-transition-name: featured-image;
+}
+
+::view-transition-old(featured-image) {
+  animation: image-fade-out 0.3s ease-out forwards;
+}
+
+::view-transition-new(featured-image) {
+  animation: image-fade-in 0.4s ease-out forwards;
+}
+
+@keyframes image-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes image-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- Reduce Motion for Accessibility ---- */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Mobile-Optimized Transitions ---- */
+@media (max-width: 768px) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.3s;
+  }
+  
+  @keyframes page-fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes page-fade-out {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+}
+
+/* ---- Page Transition Loading Indicator ---- */
+.page-transitioning::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary)),
+    hsl(var(--primary)),
+    transparent
+  );
+  z-index: 9999;
+  animation: progress-slide 0.4s ease-out forwards;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ============================================
+   Additional Animation Utilities for World-Class UX
+   ============================================ */
+
+/* Smooth easing curves */
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ease-bounce {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Duration utilities */
+.duration-400 {
+  transition-duration: 400ms;
+}
+
+.duration-450 {
+  transition-duration: 450ms;
+}
+
+/* Animation fill mode */
+.fill-mode-backwards {
+  animation-fill-mode: backwards;
+}
+
+.fill-mode-forwards {
+  animation-fill-mode: forwards;
+}
+
+.fill-mode-both {
+  animation-fill-mode: both;
+}
+
+/* Delay utilities for staggered animations */
+.delay-50 { animation-delay: 50ms; }
+.delay-75 { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-250 { animation-delay: 250ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Smooth hover lift effect */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgb(0 0 0 / 0.15);
+}
+
+.hover-lift:active {
+  transform: translateY(-1px);
+}
+
+/* Subtle scale on press */
+.press-scale {
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* Glow effect for interactive elements */
+.glow-primary {
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-primary:hover,
+.glow-primary:focus {
+  box-shadow: 0 0 20px -4px hsl(var(--primary) / 0.4);
+}
+
+/* Pulse animation for attention */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+/* Breathe animation for loading states */
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Spin once animation */
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-once {
+  animation: spin-once 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Smooth reveal from below */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal-up {
+  animation: reveal-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Smooth reveal from side */
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-reveal-left {
+  animation: reveal-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-reveal-right {
+  animation: reveal-right 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Zoom reveal */
+@keyframes zoom-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-zoom-reveal {
+  animation: zoom-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Enhanced card transitions */
+.card-interactive {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.2s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -12px rgb(0 0 0 / 0.2);
+}
+
+.card-interactive:active {
+  transform: scale(0.98);
+}
+
+/* Smooth link underline animation */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Backdrop blur transition */
+.backdrop-transition {
+  transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
+}
+
+/* Text reveal animation */
+@keyframes text-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-text-reveal {
+  animation: text-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Skeleton loading enhancement */
+.skeleton-enhanced {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

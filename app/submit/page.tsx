@@ -9,7 +9,7 @@ export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Modern Sleek Header */}
-      <div className="relative z-0">
+      <div className="relative z-0 view-transition-header">
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#6B1E28] via-[#7A2A36] to-[#8B3444]" />
         
@@ -20,7 +20,7 @@ export default function SubmitPage() {
         
         {/* Content */}
         <div className="relative container mx-auto px-4 py-6 md:py-8 pb-10 md:pb-12">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="flex items-center justify-center w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
               <HeartHandshake className="h-5 w-5 text-white" />
             </div>
@@ -40,8 +40,8 @@ export default function SubmitPage() {
       </div>
 
       {/* Form Section */}
-      <div className="container mx-auto px-4 py-6 pb-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="container mx-auto px-4 py-6 pb-8 view-transition-content">
+        <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-backwards">
           <Tabs defaultValue="paste" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-muted/80 backdrop-blur-sm shadow-lg rounded-xl">
               <TabsTrigger 
@@ -71,7 +71,7 @@ export default function SubmitPage() {
         </div>
 
         {/* Help Section */}
-        <div className="max-w-2xl mx-auto mt-8">
+        <div className="max-w-2xl mx-auto mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-backwards">
           <div className="p-6 bg-muted/50 rounded-xl border">
             <div className="flex items-start gap-4">
               <div className="flex items-center justify-center w-10 h-10 bg-primary/10 text-primary rounded-lg shrink-0">

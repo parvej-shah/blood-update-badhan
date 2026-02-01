@@ -663,7 +663,7 @@ export function DonorTable() {
                       },
                     ] : []}
                     disabled={!isAdmin}
-                    className="p-4 border rounded-lg hover:bg-muted/30 transition-all duration-200"
+                    className="p-4 border rounded-lg hover:bg-muted/30 card-interactive"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
