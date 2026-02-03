@@ -39,7 +39,9 @@ import {
   ChevronRight,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  GraduationCap,
+  UserCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SwipeableCard } from "@/components/ui/swipeable-card"
@@ -684,6 +686,21 @@ export function DonorTable() {
                           <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5" />
                             {formatDate(donor.date)}
+                          </div>
+                          {/* Batch and Referrer in a row */}
+                          <div className="flex items-center gap-3 flex-wrap pt-1">
+                            {donor.batch && donor.batch !== "Unknown" && (
+                              <div className="flex items-center gap-1">
+                                <GraduationCap className="h-3.5 w-3.5" />
+                                <span className="text-xs">{donor.batch}</span>
+                              </div>
+                            )}
+                            {donor.referrer && (
+                              <div className="flex items-center gap-1">
+                                <UserCheck className="h-3.5 w-3.5" />
+                                <span className="text-xs">{donor.referrer}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
