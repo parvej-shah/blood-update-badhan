@@ -10,12 +10,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { DailyTrendsChart } from "@/components/Charts"
 import { DateRangePicker } from "@/components/DateRangePicker"
-import {
-  Download,
-  FileDown,
-  BarChart3,
-  Droplets,
-  UserCheck,
+import { 
+  Download, 
+  BarChart3, 
+  Droplets, 
+  UserCheck, 
   FileText,
   TrendingUp,
   TrendingDown,
@@ -65,25 +64,6 @@ interface ReportData {
     growthPercentage: number
     bloodGroupGrowth: Record<string, { current: number; previous: number; growth: number }>
   } | null
-  donors: Array<{
-    id: string
-    name: string
-    bloodGroup: string
-    batch: string | null
-    phone: string
-    date: string
-    referrer: string | null
-    donationCount: number
-  }>
-  newDonors: Array<{
-    id: string
-    name: string
-    bloodGroup: string
-    batch: string | null
-    phone: string
-    date: string
-    referrer: string | null
-  }>
 }
 
 // Helper function to format Date to DD-MM-YYYY
@@ -170,216 +150,45 @@ export default function ReportsPage() {
     return `${day} ${monthNames[parseInt(month) - 1]} ${year}`
   }
 
-  const buildExportRows = () => {
-    if (!reportData?.donors) return { headers: [], rows: [] }
-
-    const headers = [
-      "Serial",
-      "Donor Name",
-      "Blood Group",
-      "Batch",
-      "Mobile",
-      "Date",
-      "Referrer",
-      "Donation Count",
-    ]
-
-    const rows: string[][] = reportData.donors.map((donor, index) => {
-      const isBatchUnknown = !donor.batch || donor.batch.toLowerCase() === "unknown"
-      return [
-        (index + 1).toString(),
-        donor.name,
-        donor.bloodGroup,
-        isBatchUnknown ? "" : donor.batch!,
-        donor.phone,
-        donor.date,
-        donor.referrer || "",
-        "",
-      ]
-    })
-
-    return { headers, rows }
-  }
-
   const handleExportCSV = () => {
-    if (!reportData?.donors) return
-    const { headers, rows } = buildExportRows()
-    const csv = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell || ""}"`).join(","))
-      .join("\n")
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
+    if (!reportData) return
+
+    const headers = ["Metric", "Value"]
+    const rows: string[][] = [
+      ["Total Donations", reportData.totalDonations.toString()],
+      ...Object.entries(reportData.bloodGroupBreakdown).map(([bg, count]) => [
+        `Blood Group ${bg}`,
+        count.toString(),
+      ]),
+      ...reportData.topReferrers.map((r) => [`Referrer: ${r.referrer}`, r.count.toString()]),
+    ]
+    
+    // Add growth metrics if available
+    if (reportData.growthMetrics) {
+      rows.push(
+        ["", ""],
+        ["Growth Metrics", ""],
+        ["Growth Percentage", `${reportData.growthMetrics.growthPercentage.toFixed(1)}%`],
+        ["Previous Period Donations", reportData.growthMetrics.previousPeriod.totalDonations.toString()],
+        ["Previous Period Start", reportData.growthMetrics.previousPeriod.dateFrom],
+        ["Previous Period End", reportData.growthMetrics.previousPeriod.dateTo],
+        ["", ""],
+        ["Blood Group Growth", ""],
+        ...Object.entries(reportData.growthMetrics.bloodGroupGrowth).map(([bg, data]) => [
+          `Blood Group ${bg} Growth`,
+          `${data.growth >= 0 ? '+' : ''}${data.growth.toFixed(1)}% (Current: ${data.current}, Previous: ${data.previous})`,
+        ])
+      )
+    }
+
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n")
+    const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `badhan-donors-${new Date().toISOString().split("T")[0]}.csv`
+    a.download = `badhan-report-${new Date().toISOString().split("T")[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
-  }
-
-  const handleExportPDF = () => {
-    if (!reportData?.donors) return
-    const { headers, rows } = buildExportRows()
-
-    const dateLabel =
-      filters.dateFrom && filters.dateTo
-        ? `${formatDateForDisplay(filters.dateFrom)} - ${formatDateForDisplay(filters.dateTo)}`
-        : new Date().toLocaleDateString()
-
-    // Build a filename from the report title + period (browsers use
-    // document.title as the default "Save as PDF" filename).
-    const pdfFileName = `Badhan Amar Ekushey Hall Unit — Blood Donor Report  Period: ${dateLabel}`
-
-    const tableRows = rows
-      .map(
-        (row) =>
-          `<tr>${row
-            .map((cell, i) => {
-              const align = i === 0 ? "center" : i === 7 ? "center" : "left"
-              return `<td style="text-align:${align}">${cell}</td>`
-            })
-            .join("")}</tr>`
-      )
-      .join("")
-
-    // Top 3 referrers summary (reportData.topReferrers is already sorted by count desc)
-    const topThree = (reportData.topReferrers || []).slice(0, 3)
-    const medals = ["🥇", "🥈", "🥉"]
-    const summaryCards = topThree
-      .map(
-        (ref, i) => `
-        <div class="summary-card">
-          <div class="rank">${medals[i] || i + 1}</div>
-          <div class="summary-info">
-            <div class="ref-name">${ref.referrer || "—"}</div>
-            <div class="ref-count">${ref.count} donor${ref.count === 1 ? "" : "s"} referred</div>
-          </div>
-        </div>`
-      )
-      .join("")
-
-    const summarySection = topThree.length
-      ? `<div class="summary">
-           <h2>Summary &mdash; Top 3 Referrers</h2>
-           <div class="summary-cards">${summaryCards}</div>
-         </div>`
-      : ""
-
-    // New donors: first-ever donation within this period.
-    const newDonorsCount = (reportData.newDonors || []).length
-
-    const newDonorsSection = `<div class="new-donors">
-           <h2>New Donors <span class="count-badge">${newDonorsCount}</span></h2>
-           <p class="new-donors-desc">First-time donors in this period (no prior donation record).</p>
-         </div>`
-
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8" />
-<title>${pdfFileName}</title>
-<style>
-  @page { size: A4 portrait; margin: 14mm 12mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 8.5pt; color: #111; }
-  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; border-bottom: 2px solid #6B1E28; padding-bottom: 6px; }
-  .header h1 { font-size: 14pt; color: #6B1E28; font-weight: 700; }
-  .header p { font-size: 8pt; color: #555; margin-top: 2px; }
-  .header .period { background: #fbe3e6; color: #6B1E28; font-weight: 700; padding: 1px 6px; border-radius: 3px; }
-  .meta { font-size: 7.5pt; color: #444; margin-bottom: 8px; }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: #6B1E28; color: #fff; }
-  thead th { padding: 4px 5px; font-size: 8pt; font-weight: 600; text-align: left; white-space: nowrap; }
-  thead th:first-child { text-align: center; width: 28px; }
-  thead th:last-child { text-align: center; width: 60px; }
-  tbody tr:nth-child(even) { background: #fdf4f5; }
-  tbody tr:hover { background: #fae8ea; }
-  tbody td { padding: 3.5px 5px; font-size: 7.5pt; border-bottom: 1px solid #e8e8e8; vertical-align: middle; }
-  .summary { margin-top: 14px; page-break-inside: avoid; }
-  .summary h2 { font-size: 10pt; color: #6B1E28; font-weight: 700; margin-bottom: 6px; border-bottom: 1px solid #e3c5c9; padding-bottom: 3px; }
-  .summary-cards { display: flex; gap: 8px; }
-  .summary-card { flex: 1; display: flex; align-items: center; gap: 6px; background: #fdf4f5; border: 1px solid #f0d6da; border-radius: 5px; padding: 6px 8px; }
-  .summary-card .rank { font-size: 13pt; line-height: 1; }
-  .summary-info .ref-name { font-size: 8.5pt; font-weight: 700; color: #111; }
-  .summary-info .ref-count { font-size: 7pt; color: #777; margin-top: 1px; }
-  .new-donors { margin-top: 14px; page-break-inside: avoid; }
-  .new-donors h2 { font-size: 10pt; color: #6B1E28; font-weight: 700; margin-bottom: 6px; border-bottom: 1px solid #e3c5c9; padding-bottom: 3px; }
-  .new-donors .count-badge { background: #6B1E28; color: #fff; font-size: 9pt; font-weight: 700; padding: 1px 8px; border-radius: 8px; margin-left: 4px; vertical-align: middle; }
-  .new-donors .new-donors-desc { font-size: 7.5pt; color: #777; margin-top: 3px; }
-  .footer { margin-top: 14px; font-size: 7pt; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 5px; }
-  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-</style>
-</head>
-<body>
-  <div class="header">
-    <div>
-      <h1>Badhan Amar Ekushey Hall Unit — Blood Donor Report</h1>
-      <p>Period: <span class="period">${dateLabel}</span>${filters.bloodGroup !== "all" ? ` &nbsp;|&nbsp; Blood Group: ${filters.bloodGroup}` : ""}</p>
-    </div>
-  </div>
-  <p class="meta">Total Donors: <strong>${rows.length}</strong> &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</p>
-  <table>
-    <thead>
-      <tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr>
-    </thead>
-    <tbody>${tableRows}</tbody>
-  </table>
-  ${summarySection}
-  ${newDonorsSection}
-  <div class="footer">Badhan &mdash; Blood Donor Management &nbsp;|&nbsp; Printed on ${new Date().toLocaleDateString()}</div>
-</body>
-</html>`
-
-    // Use a hidden iframe rather than a popup window: avoids popup blockers
-    // and the onload race that occurs after document.write/close.
-    const iframe = document.createElement("iframe")
-    iframe.style.position = "fixed"
-    iframe.style.right = "0"
-    iframe.style.bottom = "0"
-    iframe.style.width = "0"
-    iframe.style.height = "0"
-    iframe.style.border = "0"
-    document.body.appendChild(iframe)
-
-    const doc = iframe.contentWindow?.document
-    if (!doc) {
-      document.body.removeChild(iframe)
-      return
-    }
-
-    doc.open()
-    doc.write(html)
-    doc.close()
-
-    // Some browsers derive the default PDF filename from the top window's
-    // title rather than the iframe's, so swap it temporarily and restore.
-    const originalTitle = document.title
-
-    const cleanup = () => {
-      document.title = originalTitle
-      if (iframe.parentNode) iframe.parentNode.removeChild(iframe)
-    }
-
-    const triggerPrint = () => {
-      const win = iframe.contentWindow
-      if (!win) {
-        cleanup()
-        return
-      }
-      document.title = pdfFileName
-      // Clean up only after the print/save dialog is dismissed, so the
-      // preview has the iframe document available while it renders.
-      win.addEventListener("afterprint", cleanup)
-      win.focus()
-      win.print()
-    }
-
-    // Print once the iframe content is ready. onload may already have fired
-    // for a document.write'd iframe, so fall back to a short timeout.
-    if (iframe.contentWindow?.document.readyState === "complete") {
-      setTimeout(triggerPrint, 250)
-    } else {
-      iframe.onload = () => setTimeout(triggerPrint, 250)
-    }
   }
 
   return (
@@ -487,24 +296,14 @@ export default function ReportsPage() {
                 )}
             </Button>
             {reportData && (
-              <>
-                <Button
-                  onClick={handleExportCSV}
-                  variant="outline"
-                  className="h-11 md:h-10 w-full sm:w-auto text-sm font-medium"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button
-                  onClick={handleExportPDF}
-                  variant="outline"
-                  className="h-11 md:h-10 w-full sm:w-auto text-sm font-medium border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
-                >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
-              </>
+              <Button 
+                onClick={handleExportCSV} 
+                variant="outline"
+                className="h-11 md:h-10 w-full sm:w-auto text-sm md:text-base font-medium"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             )}
           </div>
         </CardContent>

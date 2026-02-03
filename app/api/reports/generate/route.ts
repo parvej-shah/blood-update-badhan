@@ -42,44 +42,10 @@ export async function POST(request: NextRequest) {
     const allDonors = await prisma.donor.findMany({
       where: baseWhere,
       select: {
-        id: true,
-        name: true,
-        bloodGroup: true,
-        batch: true,
-        phone: true,
         date: true,
+        bloodGroup: true,
         referrer: true,
-        createdAt: true,
       },
-      orderBy: {
-        createdAt: 'asc',
-      }
-    })
-
-    // Calculate global donation count for each phone number
-    // We need to fetch this separately to get true historical counts regardless of filters
-    const phoneCounts = await prisma.donor.groupBy({
-      by: ['phone'],
-      _count: true,
-    })
-    const donationCountByPhone = Object.fromEntries(
-      phoneCounts.map(pc => [pc.phone, pc._count])
-    )
-
-    // Determine the earliest-ever donation date per phone (across ALL donors,
-    // ignoring the blood group filter would be ideal, but baseWhere here only
-    // narrows blood group; for "new donor" detection we want true history, so
-    // fetch dates for all phones unfiltered).
-    const allPhoneDates = await prisma.donor.findMany({
-      select: { phone: true, date: true },
-    })
-    const earliestDateByPhone: Record<string, Date> = {}
-    allPhoneDates.forEach(({ phone, date }) => {
-      const d = parseDonationDate(date)
-      if (!d) return
-      if (!earliestDateByPhone[phone] || d < earliestDateByPhone[phone]) {
-        earliestDateByPhone[phone] = d
-      }
     })
 
     // Filter donors by date range in memory
@@ -90,37 +56,6 @@ export async function POST(request: NextRequest) {
       if (toDate && donorDate > toDate) return false
       return true
     })
-
-    // New donors: those whose very first donation (across all history) falls
-    // within the selected period — i.e. they had no record before it.
-    const seenNewPhones = new Set<string>()
-    const newDonors = filteredDonors
-      .filter(donor => {
-        const earliest = earliestDateByPhone[donor.phone]
-        if (!earliest) return false
-        // First-ever donation must be inside the selected period.
-        if (fromDate && earliest < fromDate) return false
-        if (toDate && earliest > toDate) return false
-        // Dedupe by phone so a donor who donated twice in the period appears once.
-        if (seenNewPhones.has(donor.phone)) return false
-        seenNewPhones.add(donor.phone)
-        return true
-      })
-      .map(d => ({
-        id: d.id,
-        name: d.name,
-        bloodGroup: d.bloodGroup,
-        batch: d.batch,
-        phone: d.phone,
-        date: d.date,
-        referrer: d.referrer,
-      }))
-      .sort((a, b) => {
-        const da = parseDonationDate(a.date)
-        const db = parseDonationDate(b.date)
-        if (!da || !db) return 0
-        return da.getTime() - db.getTime()
-      })
 
     // Get total donations
     const totalDonations = filteredDonors.length
@@ -313,21 +248,6 @@ export async function POST(request: NextRequest) {
         } : null,
       },
       growthMetrics,
-      newDonors,
-      donors: filteredDonors.map(d => ({
-        id: d.id,
-        name: d.name,
-        bloodGroup: d.bloodGroup,
-        batch: d.batch,
-        phone: d.phone,
-        date: d.date,
-        referrer: d.referrer,
-        donationCount: donationCountByPhone[d.phone] || 1,
-        dateObj: parseDonationDate(d.date) // temporary for sorting
-      })).sort((a, b) => {
-        if (!a.dateObj || !b.dateObj) return 0
-        return a.dateObj.getTime() - b.dateObj.getTime()
-      }).map(({ dateObj, ...rest }) => rest),
     })
   } catch (error) {
     console.error('Error generating report:', error)
