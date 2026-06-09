@@ -14,6 +14,10 @@ type TransitionLinkProps = ComponentProps<typeof Link> & {
   direction?: TransitionDirection
 }
 
+// Prevent concurrent view transitions — calling startViewTransition while one is
+// running throws InvalidStateError. This flag guards all three call sites.
+let isTransitioning = false
+
 // Navigation hierarchy for determining transition direction
 const NAV_HIERARCHY: Record<string, number> = {
   '/': 0,
@@ -81,14 +85,14 @@ export function TransitionLink({
       return
     }
 
-    // Check if View Transitions API is supported
-    if (!document.startViewTransition) {
+    // Check if View Transitions API is supported or already in progress
+    if (!document.startViewTransition || isTransitioning) {
       return // Let Next.js Link handle navigation normally
     }
 
     // Prevent default navigation
     e.preventDefault()
-    
+
     // Trigger haptic feedback for navigation
     triggerHaptic('selection')
 
@@ -96,22 +100,22 @@ export function TransitionLink({
     const url = typeof href === 'string' ? href : href.pathname || '/'
 
     // Determine transition direction
-    const transitionDirection = direction === "auto" 
-      ? determineDirection(currentPath, url) 
+    const transitionDirection = direction === "auto"
+      ? determineDirection(currentPath, url)
       : direction
 
     // Apply direction class to html element
     const html = document.documentElement
     html.classList.remove('transition-forward', 'transition-backward')
     html.classList.add(`transition-${transitionDirection}`)
-    
+
     // Add transitioning class for progress indicator
     html.classList.add('page-transitioning')
+    isTransitioning = true
 
     // Start view transition
     const transition = document.startViewTransition(async () => {
       router.push(url)
-      // Small delay to ensure React has started rendering
       await new Promise(resolve => setTimeout(resolve, 50))
     })
 
@@ -119,8 +123,9 @@ export function TransitionLink({
     transition.finished.then(() => {
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
     }).catch(() => {
-      // Cleanup even on error
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
+    }).finally(() => {
+      isTransitioning = false
     })
   }, [href, onClick, noTransition, router, direction, currentPath])
 
@@ -139,7 +144,7 @@ export function useTransitionRouter() {
   const currentPath = usePathname()
 
   const push = useCallback((url: string, options?: { direction?: TransitionDirection }) => {
-    if (!document.startViewTransition) {
+    if (!document.startViewTransition || isTransitioning) {
       router.push(url)
       return
     }
@@ -148,10 +153,11 @@ export function useTransitionRouter() {
 
     const transitionDirection = options?.direction ?? determineDirection(currentPath, url)
     const html = document.documentElement
-    
+
     html.classList.remove('transition-forward', 'transition-backward')
     html.classList.add(`transition-${transitionDirection}`)
     html.classList.add('page-transitioning')
+    isTransitioning = true
 
     const transition = document.startViewTransition(async () => {
       router.push(url)
@@ -162,11 +168,13 @@ export function useTransitionRouter() {
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
     }).catch(() => {
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
+    }).finally(() => {
+      isTransitioning = false
     })
   }, [router, currentPath])
 
   const back = useCallback(() => {
-    if (!document.startViewTransition) {
+    if (!document.startViewTransition || isTransitioning) {
       router.back()
       return
     }
@@ -177,6 +185,7 @@ export function useTransitionRouter() {
     html.classList.remove('transition-forward', 'transition-backward')
     html.classList.add('transition-backward')
     html.classList.add('page-transitioning')
+    isTransitioning = true
 
     const transition = document.startViewTransition(async () => {
       router.back()
@@ -187,6 +196,8 @@ export function useTransitionRouter() {
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
     }).catch(() => {
       html.classList.remove('transition-forward', 'transition-backward', 'page-transitioning')
+    }).finally(() => {
+      isTransitioning = false
     })
   }, [router])
 
