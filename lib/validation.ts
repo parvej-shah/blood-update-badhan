@@ -64,9 +64,10 @@ export const donorSchema = z.object({
   batch: z.string().optional(),
   phone: z
     .string()
-    .min(1, 'Phone number is required')
+    .optional()
     .refine(
       (phone) => {
+        if (!phone || phone.trim() === '') return true
         // Remove all non-digit characters except +
         const cleaned = phone.replace(/[^\d+]/g, '')
         // Bangladesh format: 11 digits starting with 01, or +880 format
@@ -82,9 +83,10 @@ export const donorSchema = z.object({
     ),
   date: z
     .string()
-    .min(1, 'Date is required')
+    .optional()
     .refine(
       (date) => {
+        if (!date || date.trim() === '') return true
         // Accept DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, MM/DD/YY, or MM/DD/YYYY
         return (
           /^\d{1,2}[.-]\d{1,2}[.-]\d{2,4}$/.test(date) || // Dash or dot format
@@ -101,7 +103,8 @@ export const donorSchema = z.object({
 
 export type DonorInput = z.infer<typeof donorSchema>
 
-export function normalizePhone(phone: string): string {
+export function normalizePhone(phone: string | undefined | null): string {
+  if (!phone || phone.trim() === '') return ''
   // Remove all non-digit characters except +
   let cleaned = phone.replace(/[^\d+]/g, '')
   
@@ -177,7 +180,8 @@ export function normalizeReferrer(referrer: string | null | undefined): string |
   return normalized || null
 }
 
-export function normalizeDate(dateStr: string): string {
+export function normalizeDate(dateStr: string | undefined | null): string {
+  if (!dateStr || dateStr.trim() === '') return ''
   // Parse DD-MM-YY, DD-MM-YYYY, DD.MM.YY, DD.MM.YYYY, M/D/YY, M/D/YYYY, MM/DD/YY, or MM/DD/YYYY
   let separator: string
   let isSlashFormat = false

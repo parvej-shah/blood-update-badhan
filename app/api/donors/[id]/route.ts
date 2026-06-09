@@ -88,15 +88,10 @@ export async function PUT(
     // Check for duplicate (excluding current donor)
     const duplicateDonor = await prisma.donor.findFirst({
       where: {
-        phone: normalizedPhone,
         date: normalizedDate,
-        name: {
-          equals: data.name.trim(),
-          mode: 'insensitive',
-        },
-        NOT: {
-          id: id, // Exclude current donor
-        },
+        name: { equals: data.name.trim(), mode: 'insensitive' },
+        ...(normalizedPhone ? { phone: normalizedPhone } : {}),
+        NOT: { id },
       },
     })
 
@@ -125,18 +120,6 @@ export async function PUT(
     if (!donorData.name || donorData.name.length === 0) {
       return NextResponse.json(
         { error: 'Name is required and cannot be empty' },
-        { status: 400 }
-      )
-    }
-    if (!donorData.phone || donorData.phone.length === 0) {
-      return NextResponse.json(
-        { error: 'Phone is required and cannot be empty' },
-        { status: 400 }
-      )
-    }
-    if (!donorData.date || donorData.date.length === 0) {
-      return NextResponse.json(
-        { error: 'Date is required and cannot be empty' },
         { status: 400 }
       )
     }

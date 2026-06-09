@@ -64,6 +64,16 @@ interface ReportData {
     growthPercentage: number
     bloodGroupGrowth: Record<string, { current: number; previous: number; growth: number }>
   } | null
+  donors: Array<{
+    id: string
+    name: string
+    bloodGroup: string
+    batch: string | null
+    phone: string
+    date: string
+    referrer: string | null
+    donationCount: number
+  }>
 }
 
 // Helper function to format Date to DD-MM-YYYY
@@ -151,42 +161,40 @@ export default function ReportsPage() {
   }
 
   const handleExportCSV = () => {
-    if (!reportData) return
+    if (!reportData || !reportData.donors) return
 
-    const headers = ["Metric", "Value"]
-    const rows: string[][] = [
-      ["Total Donations", reportData.totalDonations.toString()],
-      ...Object.entries(reportData.bloodGroupBreakdown).map(([bg, count]) => [
-        `Blood Group ${bg}`,
-        count.toString(),
-      ]),
-      ...reportData.topReferrers.map((r) => [`Referrer: ${r.referrer}`, r.count.toString()]),
+    const headers = [
+      "Serial",
+      "Donor Name",
+      "Blood Group",
+      "Batch",
+      "Mobile",
+      "Date",
+      "Referrer",
+      "Donation Count"
     ]
-    
-    // Add growth metrics if available
-    if (reportData.growthMetrics) {
-      rows.push(
-        ["", ""],
-        ["Growth Metrics", ""],
-        ["Growth Percentage", `${reportData.growthMetrics.growthPercentage.toFixed(1)}%`],
-        ["Previous Period Donations", reportData.growthMetrics.previousPeriod.totalDonations.toString()],
-        ["Previous Period Start", reportData.growthMetrics.previousPeriod.dateFrom],
-        ["Previous Period End", reportData.growthMetrics.previousPeriod.dateTo],
-        ["", ""],
-        ["Blood Group Growth", ""],
-        ...Object.entries(reportData.growthMetrics.bloodGroupGrowth).map(([bg, data]) => [
-          `Blood Group ${bg} Growth`,
-          `${data.growth >= 0 ? '+' : ''}${data.growth.toFixed(1)}% (Current: ${data.current}, Previous: ${data.previous})`,
-        ])
-      )
-    }
 
-    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n")
-    const blob = new Blob([csv], { type: "text/csv" })
+    const rows: string[][] = reportData.donors.map((donor, index) => {
+      const isBatchUnknown = donor.batch?.toLowerCase() === 'unknown';
+      
+      return [
+        (index + 1).toString(),
+        donor.name,
+        donor.bloodGroup,
+        isBatchUnknown ? "" : (donor.batch || ""),
+        donor.phone,
+        donor.date,
+        donor.referrer || "",
+        ""
+      ];
+    })
+
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell || ''}"`).join(",")).join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `badhan-report-${new Date().toISOString().split("T")[0]}.csv`
+    a.download = `badhan-donors-${new Date().toISOString().split("T")[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }

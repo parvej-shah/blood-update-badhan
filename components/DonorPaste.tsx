@@ -1,23 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { parseFormattedText, parseBulkFormattedText } from "@/lib/parser"
 import { Badge } from "@/components/ui/badge"
 import { ParsingFeedbackDialog } from "@/components/ParsingFeedbackDialog"
 import { cn } from "@/lib/utils"
-import { 
-  FileText, 
-  Eye, 
-  CheckCircle2, 
-  AlertCircle, 
-  Users, 
+import {
+  FileText,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  Users,
   Send,
   MessageSquare,
-  Droplets
+  Droplets,
+  Sparkles
 } from "lucide-react"
 
 const bloodGroupColors: Record<string, string> = {
@@ -46,6 +46,90 @@ function capitalizeWords(text: string | null | undefined): string | null | undef
     .join(' ')
 }
 
+const FIELD_LINE_RE = new RegExp([
+  /(\+?880)?01[3-9]\d{8}/.source,                          // BD phone
+  /\+?880\s*1[3-9][\d\s\-]{7,}/.source,                   // +880 spaced phone
+  /\b\d{1,2}[\/\-._]\d{1,2}[\/\-._]\d{2,4}\b/.source,    // numeric date
+  /\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{2,4}\b/i.source, // written date
+  /^(A[B]?|B|O)[+\-](\(?ve\)?|positive|negative)?$/i.source, // blood group standalone
+  /\b(IIT|Math|Mathematics|MTH|Chemistry|SWE|INFS|Fisheries|AMATH|Physics|Ocn|NE|ACCE|EEE|GEB|Botany|Microbiology|Zoology|Statistics|CSE|EECE|BUET|DU|RU|CU|JU|SUST|KUET|RUET|CUET)\b/i.source, // dept/uni
+  /\b(?:20)?[1-2]\d[-_/](?:20)?[1-2]\d\b/.source,         // batch year range
+  /\b(AEH|AE|SK|PG|mohsin|jagannath|surjasen|21\s*hall)\b/i.source, // hall
+].join('|'))
+
+function isFieldLine(line: string): boolean {
+  return FIELD_LINE_RE.test(line)
+}
+
+function isNameLike(line: string): boolean {
+  const t = line.trim()
+  if (!t || t.length < 2) return false
+  if (isFieldLine(t)) return false
+  // Should be mostly letters/spaces/hyphens, no digits beyond a couple
+  if (/\d{4,}/.test(t)) return false        // long digit run = phone/date
+  if (/[:@#]/.test(t)) return false          // obviously not a name
+  return /[a-zA-Zঀ-৿]/.test(t)    // has at least some letters
+}
+
+// When blocks are pasted without blank-line separators, detect boundaries:
+// a field line followed by a name-like line signals the start of a new block.
+function insertBlockSeparators(text: string): string {
+  const lines = text.split('\n')
+  const out: string[] = []
+  let seenFieldInBlock = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trim()
+
+    if (trimmed === '') {
+      out.push(line)
+      seenFieldInBlock = false
+      continue
+    }
+
+    if (isFieldLine(trimmed)) {
+      seenFieldInBlock = true
+      out.push(line)
+      continue
+    }
+
+    if (isNameLike(trimmed) && seenFieldInBlock) {
+      // Name-like line after fields → new block boundary
+      out.push('')
+      seenFieldInBlock = false
+    }
+
+    out.push(line)
+  }
+
+  return out.join('\n')
+}
+
+// Strip WhatsApp metadata artifacts from pasted text
+function cleanPastedText(raw: string): string {
+  let s = raw
+  // "Name  · \nEdited" or "Name · Edited" — remove · and the Edited token (cross-line)
+  s = s.replace(/[ \t]*·[ \t]*\n[ \t]*Edited[ \t]*/gi, '')
+  s = s.replace(/[ \t]*·[ \t]*Edited[ \t]*/gi, ' ')
+  // Standalone "Edited" line
+  s = s.replace(/^[ \t]*Edited[ \t]*$/gim, '')
+  // Remaining middle dots
+  s = s.replace(/·/g, ' ')
+  // WhatsApp timestamps — replace with blank line (block separator)
+  // Matches: "00:24", "11:32", "9:05", optionally preceded by a date like "21 May 2026, 11:32"
+  s = s.replace(/^[ \t]*(?:\d{1,2}\s+\w+\s+\d{4},?\s*)?\d{1,2}:\d{2}(?:\s*[AP]M)?[ \t]*$/gim, '\n')
+  // Strip stray Bengali/Arabic numerals and reaction-like single characters on their own line
+  s = s.replace(/^[ \t]*[০-৯٠-٩]+[ \t]*$/gm, '')
+  // Insert blank-line separators where blocks run together without them
+  s = insertBlockSeparators(s)
+  // Collapse multiple blank lines down to one
+  s = s.replace(/\n{3,}/g, '\n\n')
+  // Strip trailing spaces per line
+  s = s.replace(/[ \t]+$/gm, '')
+  return s.trim()
+}
+
 // Format donor data before submission
 function formatDonorData(donor: any) {
   return {
@@ -68,19 +152,58 @@ export function DonorPaste() {
   const [error, setError] = useState<string | null>(null)
   const [isBulk, setIsBulk] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
+  const [usedAI, setUsedAI] = useState(false)
+  const [aiEnabled, setAiEnabled] = useState(true)
+  const parsedDataRef = useRef<any>(null)
+  const loadingRef = useRef(false)
+
+  useEffect(() => {
+    parsedDataRef.current = parsedData
+  }, [parsedData])
+
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault()
+        if (!loadingRef.current) handleParse()
+      }
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault()
+        if (!loadingRef.current && parsedDataRef.current) handleSubmit()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleParse = async () => {
     try {
       setError(null)
+      setUsedAI(false)
       setLoading(true)
-      
-      // Use async parsing (supports custom parser)
-      const parsed = await parseBulkFormattedText(text)
-      
-      if (parsed.length > 0) {
-        // Format the parsed data before showing preview
+
+      const { safeResponseJson } = await import('@/lib/utils')
+      const response = await fetch('/api/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, useAI: aiEnabled }),
+      })
+
+      const data = await safeResponseJson(response, 'parse API')
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to parse text')
+      }
+
+      const parsed: any[] = data.donors
+      if (parsed && parsed.length > 0) {
+        setUsedAI(data.usedAI === true)
         const formattedParsed = parsed.map(donor => formatDonorData(donor))
-        
+
         if (formattedParsed.length > 1) {
           setIsBulk(true)
           setParsedData(formattedParsed)
@@ -107,6 +230,7 @@ export function DonorPaste() {
     try {
       const donors = Array.isArray(parsedData) ? parsedData : [parsedData]
       let successCount = 0
+      let duplicateCount = 0
       let errorCount = 0
       const errors: string[] = []
       const failedDonors: any[] = []
@@ -116,7 +240,7 @@ export function DonorPaste() {
         try {
           // Format and capitalize donor data before submission
           const formattedDonor = formatDonorData(donor)
-          
+
           const response = await fetch("/api/donors", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -128,10 +252,8 @@ export function DonorPaste() {
           const data = await safeResponseJson(response, 'donor submission')
 
           if (!response.ok) {
-            // Check if it's a duplicate error
             if (response.status === 409 || data.code === 'DUPLICATE_ENTRY') {
-              // Treat duplicate as success (already exists, no need to resubmit)
-              successCount++
+              duplicateCount++
             } else {
               throw new Error(data.error || "Failed to submit donor")
             }
@@ -169,24 +291,34 @@ export function DonorPaste() {
         }).join('\n\n')
         setText(failedText)
       } else {
-        // All succeeded, clear everything
+        // All succeeded or duplicated, clear everything
         setText("")
         setParsedData(null)
         setIsBulk(false)
         setShowFeedback(false)
+        setUsedAI(false)
       }
 
       if (window.toast) {
-        if (errorCount === 0) {
+        if (errorCount === 0 && duplicateCount === 0) {
           window.toast({
             title: "Success",
             description: `Successfully submitted ${successCount} donor${successCount > 1 ? "s" : ""}!`,
             variant: "success",
           })
+        } else if (errorCount === 0 && duplicateCount > 0) {
+          const parts = []
+          if (successCount > 0) parts.push(`${successCount} submitted`)
+          parts.push(`${duplicateCount} already exist${duplicateCount > 1 ? "" : "s"}`)
+          window.toast({
+            title: successCount > 0 ? "Partial Success" : "Already Exists",
+            description: parts.join(", ") + ".",
+            variant: successCount > 0 ? "success" : "destructive",
+          })
         } else {
           window.toast({
             title: "Partial Success",
-            description: `Submitted ${successCount} donor${successCount > 1 ? "s" : ""}, ${errorCount} failed. Only failed entries remain for retry.`,
+            description: `Submitted ${successCount}, ${duplicateCount} duplicate${duplicateCount !== 1 ? "s" : ""}, ${errorCount} failed. Only failed entries remain for retry.`,
             variant: successCount > 0 ? "success" : "destructive",
           })
           setError(errors.join("; "))
@@ -223,16 +355,16 @@ export function DonorPaste() {
         <div className="p-4 bg-muted/50 rounded-lg border text-sm space-y-2">
           <p className="font-medium text-foreground">Expected format:</p>
           <div className="font-mono text-xs bg-background p-3 rounded border space-y-0.5 text-muted-foreground">
-            <div>Parvej Shah</div>
+            <div>Hasanur Rahman <span className="text-primary/50">← referrer</span></div>
+            <div>Parvej Shah <span className="text-primary/50">← donor</span></div>
             <div>B+</div>
             <div>IIT 23-24</div>
             <div>01516538054</div>
             <div>25-08-25</div>
-            <div>Hasanur Rahman</div>
-            <div>AEH Hall</div>
+            <div>AEH</div>
           </div>
           <p className="text-muted-foreground text-xs">
-            For multiple donors, separate entries with blank lines. Text will be auto-capitalized.
+            Line 1 = referrer, Line 2 = donor name, then blood group / batch / phone / date / hall in any order. Separate multiple donors with a blank line.
           </p>
         </div>
 
@@ -245,18 +377,62 @@ export function DonorPaste() {
           <Textarea
             id="paste-text"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value)
+              if (parsedData) {
+                setParsedData(null)
+                setUsedAI(false)
+              }
+            }}
+            onPaste={(e) => {
+              e.preventDefault()
+              const pasted = cleanPastedText(e.clipboardData.getData('text'))
+              const el = e.currentTarget
+              const start = el.selectionStart ?? text.length
+              const end = el.selectionEnd ?? text.length
+              const before = text.slice(0, start)
+              const after = text.slice(end)
+              // Ensure there's a blank line before the pasted block if there's existing content
+              const prefix = before && !before.endsWith('\n\n') ? (before.endsWith('\n') ? '\n' : '\n\n') : before ? '' : ''
+              const newText = before + prefix + pasted.trimEnd() + '\n\n' + after
+              setText(newText)
+              if (parsedData) {
+                setParsedData(null)
+                setUsedAI(false)
+              }
+              // Move cursor to after the blank line separator
+              const cursorPos = before.length + prefix.length + pasted.trimEnd().length + 2
+              requestAnimationFrame(() => {
+                el.selectionStart = cursorPos
+                el.selectionEnd = cursorPos
+              })
+            }}
             placeholder="Paste donor info here (one line per field)"
             className="min-h-40 font-mono text-sm"
           />
         </div>
 
-        <Button 
-          onClick={handleParse} 
-          variant="outline" 
-          className="w-full h-11" 
-          disabled={loading || !text.trim()}
-        >
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setAiEnabled(v => !v)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors shrink-0",
+              aiEnabled
+                ? "bg-violet-50 border-violet-200 text-violet-600"
+                : "bg-muted border-border text-muted-foreground"
+            )}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            AI {aiEnabled ? "On" : "Off"}
+          </button>
+
+          <Button
+            onClick={handleParse}
+            variant="outline"
+            className="flex-1 h-11"
+            disabled={loading || !text.trim()}
+          >
           {loading ? (
             <span className="flex items-center gap-2">
               <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -268,7 +444,8 @@ export function DonorPaste() {
               Parse & Preview
             </span>
           )}
-        </Button>
+          </Button>
+        </div>
 
         {error && (
           <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">
@@ -281,13 +458,19 @@ export function DonorPaste() {
           <Card className="border shadow-md">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
                   <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   Preview
                   {isBulk && Array.isArray(parsedData) && (
-                    <Badge variant="secondary" className="ml-2">
-                      <Users className="h-3 w-3 mr-1" />
+                    <Badge variant="secondary" className="gap-1">
+                      <Users className="h-3 w-3" />
                       {parsedData.length} donors
+                    </Badge>
+                  )}
+                  {usedAI && (
+                    <Badge variant="secondary" className="gap-1 text-xs text-violet-600 border-violet-200 bg-violet-50">
+                      <Sparkles className="h-3 w-3" />
+                      AI parsed
                     </Badge>
                   )}
                 </CardTitle>
@@ -340,6 +523,18 @@ export function DonorPaste() {
                           <p className="text-xs text-muted-foreground">Batch</p>
                           <p className="truncate">{donor.batch || "Unknown"}</p>
                         </div>
+                        {donor.referrer && (
+                          <div className="space-y-0.5 col-span-2">
+                            <p className="text-xs text-muted-foreground">Referrer</p>
+                            <p className="truncate">{donor.referrer}</p>
+                          </div>
+                        )}
+                        {donor.hallName && (
+                          <div className="space-y-0.5 col-span-2">
+                            <p className="text-xs text-muted-foreground">Hall</p>
+                            <p className="truncate">{donor.hallName}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

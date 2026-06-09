@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@prisma/client-runtime-utils": "^7.3.0",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^20",
     "@types/node-telegram-bot-api": "^0.64.13",
     "@types/pg": "^8.16.0",

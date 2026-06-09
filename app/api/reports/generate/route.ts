@@ -42,11 +42,29 @@ export async function POST(request: NextRequest) {
     const allDonors = await prisma.donor.findMany({
       where: baseWhere,
       select: {
-        date: true,
+        id: true,
+        name: true,
         bloodGroup: true,
+        batch: true,
+        phone: true,
+        date: true,
         referrer: true,
+        createdAt: true,
       },
+      orderBy: {
+        createdAt: 'asc',
+      }
     })
+
+    // Calculate global donation count for each phone number
+    // We need to fetch this separately to get true historical counts regardless of filters
+    const phoneCounts = await prisma.donor.groupBy({
+      by: ['phone'],
+      _count: true,
+    })
+    const donationCountByPhone = Object.fromEntries(
+      phoneCounts.map(pc => [pc.phone, pc._count])
+    )
 
     // Filter donors by date range in memory
     const filteredDonors = allDonors.filter(donor => {
@@ -248,6 +266,20 @@ export async function POST(request: NextRequest) {
         } : null,
       },
       growthMetrics,
+      donors: filteredDonors.map(d => ({
+        id: d.id,
+        name: d.name,
+        bloodGroup: d.bloodGroup,
+        batch: d.batch,
+        phone: d.phone,
+        date: d.date,
+        referrer: d.referrer,
+        donationCount: donationCountByPhone[d.phone] || 1,
+        dateObj: parseDonationDate(d.date) // temporary for sorting
+      })).sort((a, b) => {
+        if (!a.dateObj || !b.dateObj) return 0
+        return a.dateObj.getTime() - b.dateObj.getTime()
+      }).map(({ dateObj, ...rest }) => rest),
     })
   } catch (error) {
     console.error('Error generating report:', error)

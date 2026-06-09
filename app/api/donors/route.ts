@@ -46,18 +46,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!donorData.phone || donorData.phone.length === 0) {
-      return NextResponse.json(
-        { error: 'Phone is required and cannot be empty' },
-        { status: 400 }
-      )
-    }
-    if (!donorData.date || donorData.date.length === 0) {
-      return NextResponse.json(
-        { error: 'Date is required and cannot be empty' },
-        { status: 400 }
-      )
-    }
     if (!donorData.bloodGroup || donorData.bloodGroup.length === 0) {
       return NextResponse.json(
         { error: 'Blood group is required and cannot be empty' },
@@ -65,26 +53,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for duplicate: same phone + date combination
+    // Check for duplicate: same name + date; also require same phone when provided
     const existingDonor = await prisma.donor.findFirst({
       where: {
-        phone: donorData.phone,
         date: donorData.date,
-        name: {
-          equals: donorData.name,
-          mode: 'insensitive',
-        },
+        name: { equals: donorData.name, mode: 'insensitive' },
+        ...(donorData.phone ? { phone: donorData.phone } : {}),
       },
     })
 
     if (existingDonor) {
       return NextResponse.json(
-        { 
-          error: `Duplicate entry detected. A donor with phone ${donorData.phone}, name "${donorData.name}", and date ${donorData.date} already exists.`,
+        {
+          error: `Duplicate entry: "${donorData.name}" on ${donorData.date} already exists.`,
           code: 'DUPLICATE_ENTRY',
           existingId: existingDonor.id,
         },
-        { status: 409 } // Conflict status code
+        { status: 409 }
       )
     }
 

@@ -12,11 +12,17 @@ export interface ParsingResult extends ParsedDonorData {
 function cleanText(text: string): string {
   let cleaned = text
   
-  // Remove "Edited" markers
-  cleaned = cleaned.replace(/\s*·\s*Edited\s*/gi, ' ')
-  cleaned = cleaned.replace(/\s*Edited\s*/gi, ' ')
+  // Remove "Edited" markers (handles "· \nEdited" cross-line pattern from WhatsApp)
+  cleaned = cleaned.replace(/[ \t]*·[ \t]*\n[ \t]*Edited[ \t]*/gi, '')
+  cleaned = cleaned.replace(/[ \t]*·[ \t]*Edited[ \t]*/gi, ' ')
+  cleaned = cleaned.replace(/^[ \t]*Edited[ \t]*$/gim, '')
   
-  // Remove timestamps (e.g., "6 Jan 2026, 00:54", "21/12/2025,")
+  // WhatsApp timestamps — replace with blank line (block separator)
+  // Matches standalone lines: "00:24", "11:32 AM", "21 May 2026, 11:32", "21 May 2026, 11:32 AM"
+  cleaned = cleaned.replace(/^[ \t]*(?:\d{1,2}\s+\w+\s+\d{4},?\s*)?\d{1,2}:\d{2}(?:\s*[AP]M)?[ \t]*$/gim, '\n')
+  // Strip stray Bengali/Arabic numerals on their own line (WhatsApp reactions/counts)
+  cleaned = cleaned.replace(/^[ \t]*[০-৯٠-٩]+[ \t]*$/gm, '')
+  // Remove legacy timestamp patterns embedded mid-line
   cleaned = cleaned.replace(/\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4},\s*\d{2}:\d{2}/gi, '')
   cleaned = cleaned.replace(/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4},\s*/g, '')
   
@@ -203,27 +209,19 @@ function extractBloodGroup(text: string): string {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
   console.log('  Checking', lines.length, 'lines for blood group')
   
+  const VALID_BG = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+  // Strict shape: must start with A/B/AB/O and contain a +/- indicator
+  const BG_SHAPE = /^(?:AB?|O|B)\s*(?:[\(\[]\s*[+\-](?:ve|VE|positive|negative)?\s*[\)\]](?:ve|VE)?|[\(\[]\s*[+\-]\s*[\)\]]|[+\-](?:ve|VE|positive|negative)?)(?:\s+\d+\s*(?:ml|unit))?$|^(?:AB?|O|B)[+\-]$/i
+
   // First, try to find blood group on its own line (most common case)
   for (const line of lines) {
     console.log(`  Checking line: "${line}"`)
-    // Pattern for standalone blood group: "O+", "A+", "B+", etc.
-    const standaloneMatch = line.match(/^([ABO]+|AB)[+-]$/i)
-    if (standaloneMatch) {
-      const bg = normalizeBloodGroup(standaloneMatch[0])
-      if (bg && ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].includes(bg)) {
-        console.log(`  ✅ Found standalone blood group: "${bg}"`)
-        return bg
-      }
-    }
-    
-    // Pattern for blood group with parentheses: "O(+ve)", "A(positive)", etc.
-    const parenMatch = line.match(/^([ABO]+|AB)\([+-]?ve\)/i) || line.match(/^([ABO]+|AB)\([+-]?positive\)/i) || line.match(/^([ABO]+|AB)\([+-]?negative\)/i)
-    if (parenMatch) {
-      const bg = normalizeBloodGroup(parenMatch[0])
-      if (bg && ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].includes(bg)) {
-        console.log(`  ✅ Found blood group with parentheses: "${bg}"`)
-        return bg
-      }
+    const cleaned = line.replace(/\s*\d+\s*ml\b/gi, '').replace(/\s*\d+\s*unit\b/gi, '').trim()
+    if (!BG_SHAPE.test(cleaned)) continue
+    const bg = normalizeBloodGroup(cleaned)
+    if (bg && VALID_BG.includes(bg)) {
+      console.log(`  ✅ Found blood group: "${bg}"`)
+      return bg
     }
   }
   
@@ -267,24 +265,15 @@ function extractBloodGroup(text: string): string {
  * Extract phone number from text
  */
 function extractPhone(text: string): string {
-  // Bangladesh phone patterns
-  const patterns = [
-    /\+?880?1[3-9]\d{8,9}/g,
-    /01[3-9]\d{8,9}/g,
-    /0?1[3-9]\d{1}[\s-]?\d{3}[\s-]?\d{5}/g,
-  ]
-  
-  for (const pattern of patterns) {
-    const matches = text.match(pattern)
-    if (matches && matches.length > 0) {
-      // Use first valid phone number
-      const phone = normalizePhone(matches[0])
-      if (phone && /^01\d{9}$/.test(phone)) {
-        return phone
-      }
+  // Strip formatting per-line so dashes inside numbers don't break matching
+  for (const line of text.split('\n')) {
+    const stripped = line.replace(/[\s\-()]/g, '')
+    const m = stripped.match(/(\+?880)?01[3-9]\d{8}/)
+    if (m) {
+      const phone = normalizePhone(m[0])
+      if (/^01[3-9]\d{8}$/.test(phone)) return phone
     }
   }
-  
   return ''
 }
 
@@ -292,25 +281,25 @@ function extractPhone(text: string): string {
  * Extract date from text
  */
 function extractDate(text: string): string {
-  // Date patterns
-  const patterns = [
-    /\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}/g,
-    /\d{1,2}\s+[\/\-\.]\s+\d{1,2}\s+[\/\-\.]\s+\d{2,4}/g,
-  ]
-  
-  for (const pattern of patterns) {
-    const matches = text.match(pattern)
-    if (matches && matches.length > 0) {
-      // Use first valid date
-      for (const match of matches) {
-        const date = normalizeDate(match.trim())
-        if (date && /^\d{2}-\d{2}-\d{4}$/.test(date)) {
-          return date
-        }
-      }
+  const DATE_RE = /\b(\d{1,2})[\/\-\._](\d{1,2})[\/\-\._](\d{2,4})\b/g
+  for (const match of text.matchAll(DATE_RE)) {
+    const [, , , yearStr] = match
+    const year = parseInt(yearStr)
+    // Reject batch year-ranges: two 2-digit numbers both < 100 (e.g. 22/23, 23-24)
+    const part1 = parseInt(match[1])
+    const part2 = parseInt(match[2])
+    if (yearStr.length <= 2 && part1 <= 31 && part2 <= 12) {
+      // could be DD-MM-YY — valid only if year >= 20 (i.e. 2020+)
+      if (year < 20) continue
+    }
+    // Reject patterns where all three parts are 2-digit and look like a batch (e.g. 22/23 parsed as 22-23-??)
+    if (yearStr.length <= 2 && part1 >= 20 && part1 <= 30 && part2 >= 20 && part2 <= 30) continue
+    const date = normalizeDate(match[0].trim())
+    if (date && /^\d{2}-\d{2}-\d{4}$/.test(date)) {
+      const yr = parseInt(date.slice(-4))
+      if (yr >= 2020) return date
     }
   }
-  
   return ''
 }
 
@@ -337,7 +326,7 @@ function extractBatch(text: string): string {
   // Batch patterns - only match department names with years or standalone year ranges
   const patterns = [
     // Department + year format (preferred): "Math 23-24", "PHR(24-25)", etc.
-    /(Math|Physics|Chemistry|Botany|Pharmacy|Microbiology|Applied\s+math|A\.math|Phy|Ocn|SWE|Swe|IIT|PHR|Mathematics)[\s]*\(?(\d{2,4}[\s-]?\d{2,4})\)?/gi,
+    /(Math(?:ematics)?|MTH|Physics|Chemistry|Botany|Pharmacy|Microbiology|Zoology|Statistics|Applied\s*math|AMATH|A\.math|Phy|Ocn|SWE|IIT|PHR|INFS|Fisheries|GEB|EEE|CSE|EECE|NE|ACCE)[\s]*\(?(\d{2,4}[\s\-_\/]?\d{2,4})\)?/gi,
   ]
   
   // Try department patterns first
@@ -388,29 +377,28 @@ function extractBatch(text: string): string {
 /**
  * Extract hall name from text
  */
+const HALL_NORMALIZE: Array<[RegExp, string]> = [
+  [/\b(?:Amar\s+Ekushey\s+Hall|A\.?E\.?\s*Hall|AEH|AE\s+[Hh]all|AE\b)\b/i, 'AE Hall'],
+  [/\bFH\s*[Hh]all\b|\bFH\b/i, 'FH Hall'],
+  [/\bSH\s*[Hh]all\b|\bSH\b/i, 'SH Hall'],
+  [/\bSK\s*[Hh]all\b|\bSK\b/i, 'SK Hall'],
+  [/\bMohsin\s*[Hh]all\b|\bMohsin\b/i, 'Mohsin Hall'],
+  [/\bJagannath\s*[Hh]all\b|\bJn\s*[Hh]all\b|\bJnU\b/i, 'Jagannath Hall'],
+  [/\b21\s*[Hh]all\b/i, '21 Hall'],
+  [/\bSurjasen\s*[Hh]all\b/i, 'Surjasen Hall'],
+  [/\bPG\s*[Hh]all\b|\bPG\b/i, 'PG Hall'],
+]
+
 function extractHall(text: string): string {
-  // Hall patterns
-  const hallKeywords = [
-    /(Amar\s+Ekushey\s+Hall|A\.E\.?\s+Hall|AEH|AE\s+hall|AE\b)/gi,
-    /(Jagannath\s+hall|Jn\s+hall|JnU)/gi,
-    /(Surjasen\s+hall)/gi,
-    /(SH\s+hall|SH\b)/gi,
-    /(IIT|SWE|Swe|A\.math|Phy|Ocn)/gi,
-  ]
-  
-  for (const pattern of hallKeywords) {
-    const matches = text.match(pattern)
-    if (matches && matches.length > 0) {
-      return matches[0].trim()
+  for (const line of text.split('\n')) {
+    const t = line.trim()
+    for (const [pattern, normalized] of HALL_NORMALIZE) {
+      if (pattern.test(t)) return normalized
     }
   }
-  
-  // Generic hall pattern
-  const genericHall = text.match(/\b([A-Za-z\s]+hall)\b/gi)
-  if (genericHall && genericHall.length > 0) {
-    return genericHall[0].trim()
-  }
-  
+  // Generic "X hall" fallback
+  const generic = text.match(/\b([A-Za-z0-9]+\s+[Hh]all)\b/)
+  if (generic) return generic[1].trim()
   return ''
 }
 
@@ -494,7 +482,7 @@ function parseSequentialFormat(text: string): ParsingResult | null {
     // - Department + year: "IIT 23-24", "Math 2024", "PHR 23-24"
     return /\d{2,4}[\s-]\d{2,4}/.test(str) || // "23-24" or "2023-24"
            /^\d{4}$/.test(str) || // "2024" (exactly 4 digits)
-           /(IIT|Math|Physics|Chemistry|Pharmacy|PHR|SWE|Botany|Zoology|Statistics|Ocn|CSE|EEE|Applied\s*Math|A\.?\s*Math)\s*\d{2,4}/i.test(str) // Dept + year
+           /(IIT|Math(?:ematics)?|MTH|Physics|Chemistry|Pharmacy|PHR|SWE|Botany|Microbiology|Zoology|Statistics|Ocn|CSE|EEE|EECE|NE|ACCE|GEB|INFS|Fisheries|Applied\s*Math|AMATH|A\.?\s*Math)\s*\d{2,4}/i.test(str) // Dept + year
   }
   
   
