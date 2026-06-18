@@ -265,38 +265,11 @@ export default function ReportsPage() {
       : ""
 
     // New donors: first-ever donation within this period.
-    const newDonors = reportData.newDonors || []
-    const newDonorRows = newDonors
-      .map((d, i) => {
-        const isBatchUnknown = !d.batch || d.batch.toLowerCase() === "unknown"
-        return `<tr>
-          <td style="text-align:center">${i + 1}</td>
-          <td>${d.name}</td>
-          <td style="text-align:center">${d.bloodGroup}</td>
-          <td>${isBatchUnknown ? "" : d.batch}</td>
-          <td>${d.phone}</td>
-          <td>${d.date}</td>
-          <td>${d.referrer || ""}</td>
-        </tr>`
-      })
-      .join("")
+    const newDonorsCount = (reportData.newDonors || []).length
 
-    const newDonorsSection = newDonors.length
-      ? `<div class="new-donors">
-           <h2>New Donors &mdash; First-time in this period <span class="count-badge">${newDonors.length}</span></h2>
-           <table>
-             <thead>
-               <tr>
-                 <th>Serial</th><th>Donor Name</th><th>Blood Group</th>
-                 <th>Batch</th><th>Mobile</th><th>Date</th><th>Referrer</th>
-               </tr>
-             </thead>
-             <tbody>${newDonorRows}</tbody>
-           </table>
-         </div>`
-      : `<div class="new-donors">
-           <h2>New Donors &mdash; First-time in this period</h2>
-           <p class="empty">No new donors in this period.</p>
+    const newDonorsSection = `<div class="new-donors">
+           <h2>New Donors <span class="count-badge">${newDonorsCount}</span></h2>
+           <p class="new-donors-desc">First-time donors in this period (no prior donation record).</p>
          </div>`
 
     const html = `<!DOCTYPE html>
@@ -330,8 +303,8 @@ export default function ReportsPage() {
   .summary-info .ref-count { font-size: 7pt; color: #777; margin-top: 1px; }
   .new-donors { margin-top: 14px; page-break-inside: avoid; }
   .new-donors h2 { font-size: 10pt; color: #6B1E28; font-weight: 700; margin-bottom: 6px; border-bottom: 1px solid #e3c5c9; padding-bottom: 3px; }
-  .new-donors .count-badge { background: #6B1E28; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: 4px; vertical-align: middle; }
-  .new-donors .empty { font-size: 8pt; color: #888; font-style: italic; }
+  .new-donors .count-badge { background: #6B1E28; color: #fff; font-size: 9pt; font-weight: 700; padding: 1px 8px; border-radius: 8px; margin-left: 4px; vertical-align: middle; }
+  .new-donors .new-donors-desc { font-size: 7.5pt; color: #777; margin-top: 3px; }
   .footer { margin-top: 14px; font-size: 7pt; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 5px; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
