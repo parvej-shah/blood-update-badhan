@@ -75,6 +75,15 @@ interface ReportData {
     referrer: string | null
     donationCount: number
   }>
+  newDonors: Array<{
+    id: string
+    name: string
+    bloodGroup: string
+    batch: string | null
+    phone: string
+    date: string
+    referrer: string | null
+  }>
 }
 
 // Helper function to format Date to DD-MM-YYYY
@@ -255,6 +264,41 @@ export default function ReportsPage() {
          </div>`
       : ""
 
+    // New donors: first-ever donation within this period.
+    const newDonors = reportData.newDonors || []
+    const newDonorRows = newDonors
+      .map((d, i) => {
+        const isBatchUnknown = !d.batch || d.batch.toLowerCase() === "unknown"
+        return `<tr>
+          <td style="text-align:center">${i + 1}</td>
+          <td>${d.name}</td>
+          <td style="text-align:center">${d.bloodGroup}</td>
+          <td>${isBatchUnknown ? "" : d.batch}</td>
+          <td>${d.phone}</td>
+          <td>${d.date}</td>
+          <td>${d.referrer || ""}</td>
+        </tr>`
+      })
+      .join("")
+
+    const newDonorsSection = newDonors.length
+      ? `<div class="new-donors">
+           <h2>New Donors &mdash; First-time in this period <span class="count-badge">${newDonors.length}</span></h2>
+           <table>
+             <thead>
+               <tr>
+                 <th>Serial</th><th>Donor Name</th><th>Blood Group</th>
+                 <th>Batch</th><th>Mobile</th><th>Date</th><th>Referrer</th>
+               </tr>
+             </thead>
+             <tbody>${newDonorRows}</tbody>
+           </table>
+         </div>`
+      : `<div class="new-donors">
+           <h2>New Donors &mdash; First-time in this period</h2>
+           <p class="empty">No new donors in this period.</p>
+         </div>`
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -284,6 +328,10 @@ export default function ReportsPage() {
   .summary-card .rank { font-size: 13pt; line-height: 1; }
   .summary-info .ref-name { font-size: 8.5pt; font-weight: 700; color: #111; }
   .summary-info .ref-count { font-size: 7pt; color: #777; margin-top: 1px; }
+  .new-donors { margin-top: 14px; page-break-inside: avoid; }
+  .new-donors h2 { font-size: 10pt; color: #6B1E28; font-weight: 700; margin-bottom: 6px; border-bottom: 1px solid #e3c5c9; padding-bottom: 3px; }
+  .new-donors .count-badge { background: #6B1E28; color: #fff; font-size: 7.5pt; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: 4px; vertical-align: middle; }
+  .new-donors .empty { font-size: 8pt; color: #888; font-style: italic; }
   .footer { margin-top: 14px; font-size: 7pt; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 5px; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
@@ -303,6 +351,7 @@ export default function ReportsPage() {
     <tbody>${tableRows}</tbody>
   </table>
   ${summarySection}
+  ${newDonorsSection}
   <div class="footer">Badhan &mdash; Blood Donor Management &nbsp;|&nbsp; Printed on ${new Date().toLocaleDateString()}</div>
 </body>
 </html>`

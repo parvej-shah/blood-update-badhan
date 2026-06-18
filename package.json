@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/minimatch": "^6.0.0",
     "@types/node": "^20",
     "@types/node-telegram-bot-api": "^0.64.13",
     "@types/pg": "^8.16.0",
