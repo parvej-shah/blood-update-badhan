@@ -84,22 +84,6 @@ export default function DashboardPage() {
           <MonthlyChart />
         </section>
       </div>
-
-      {/* Footer */}
-      <footer className="border-t mt-8 md:mt-12 mb-20 md:mb-0">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex items-center gap-2">
-              <Droplets className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">Badhan</span>
-              <span className="text-muted-foreground text-sm">• Amar Ekushey Hall Unit</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              For volunteers by Parvej Shah
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
