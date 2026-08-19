@@ -23,6 +23,7 @@ interface DonorRecord {
 }
 
 interface AvailableDonor {
+  id: string
   phone: string
   name: string
   bloodGroup: string
@@ -30,6 +31,8 @@ interface AvailableDonor {
   hallName: string | null
   lastDonationDate: string
   daysSinceLastDonation: number
+  donationCount: number
+  donations: Array<{ id: string; date: string; referrer: string | null }>
 }
 
 export async function GET(request: NextRequest) {
@@ -44,77 +47,47 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Calculate 4 months ago threshold for date comparison
     const fourMonthsAgoDate = subMonths(new Date(), 4)
 
-    // Get all donors with the specified blood group
-    // Note: We can't use Prisma orderBy on date field (DD-MM-YYYY string) as it won't sort correctly
-    // We'll fetch all and sort in memory after parsing dates
     const donors = await prisma.donor.findMany({
       where: {
         bloodGroup: bloodGroup,
       },
-      select: {
-        phone: true,
-        name: true,
-        bloodGroup: true,
-        batch: true,
-        hallName: true,
-        date: true,
-      },
-    })
-
-    // Sort by date descending (most recent first) - parse dates for correct sorting
-    donors.sort((a, b) => {
-      const dateA = parseDonationDate(a.date)
-      const dateB = parseDonationDate(b.date)
-      if (!dateA && !dateB) return 0
-      if (!dateA) return 1
-      if (!dateB) return -1
-      return dateB.getTime() - dateA.getTime() // Descending order
-    })
-
-    // Group by phone number and get the most recent donation for each donor
-    // Since we sorted by date desc, the first occurrence of each phone is the most recent
-    const donorMap = new Map<string, DonorRecord>()
-    
-    // Time complexity: O(n) - single pass through donors
-    for (const donor of donors) {
-      // If we haven't seen this phone number yet, it's the most recent (due to sorting)
-      if (!donorMap.has(donor.phone)) {
-        donorMap.set(donor.phone, donor)
+      include: {
+        donations: {
+          orderBy: { createdAt: 'desc' }
+        }
       }
-      // If we've already seen it, skip (we already have the most recent due to sorting)
-    }
+    })
 
-    // Filter to only include donors whose last donation was 4+ months ago
-    // Time complexity: O(m) where m = unique phone numbers (m ≤ n)
     const availableDonors: AvailableDonor[] = []
     
-    for (const donor of donorMap.values()) {
-      const donationDate = parseDonationDate(donor.date)
+    for (const donor of donors) {
+      const effectiveDate = donor.lastDonationDate || donor.date
+      const donationDate = parseDonationDate(effectiveDate)
       if (!donationDate) continue
 
-      // Check if last donation was 4+ months ago
       if (donationDate <= fourMonthsAgoDate) {
         const daysSince = Math.floor(
           (new Date().getTime() - donationDate.getTime()) / (1000 * 60 * 60 * 24)
         )
 
         availableDonors.push({
+          id: donor.id,
           phone: donor.phone,
           name: donor.name,
           bloodGroup: donor.bloodGroup,
           batch: donor.batch,
           hallName: donor.hallName,
-          lastDonationDate: donor.date,
+          lastDonationDate: effectiveDate,
           daysSinceLastDonation: daysSince,
+          donationCount: donor.donationCount || donor.donations.length || 1,
+          donations: donor.donations.map(d => ({ id: d.id, date: d.date, referrer: d.referrer }))
         })
       }
     }
 
-    // Sort by days since last donation (most available first)
-    // Time complexity: O(k log k) where k = available donors (k ≤ m ≤ n)
+    // Sort available donors by daysSinceLastDonation descending (oldest last donation first)
     availableDonors.sort((a, b) => b.daysSinceLastDonation - a.daysSinceLastDonation)
 
     return NextResponse.json({
@@ -123,11 +96,10 @@ export async function GET(request: NextRequest) {
       donors: availableDonors,
     })
   } catch (error) {
-    console.error('Error searching available donors:', error)
+    console.error('Error searching donors:', error)
     return NextResponse.json(
-      { error: 'Failed to search available donors' },
+      { error: 'Failed to search donors' },
       { status: 500 }
     )
   }
 }
-

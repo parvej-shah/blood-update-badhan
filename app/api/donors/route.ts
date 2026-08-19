@@ -53,32 +53,98 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for duplicate: same name + date; also require same phone when provided
-    const existingDonor = await prisma.donor.findFirst({
-      where: {
-        date: donorData.date,
-        name: { equals: donorData.name, mode: 'insensitive' },
-        ...(donorData.phone ? { phone: donorData.phone } : {}),
-      },
-    })
-
-    if (existingDonor) {
-      return NextResponse.json(
-        {
-          error: `Duplicate entry: "${donorData.name}" on ${donorData.date} already exists.`,
-          code: 'DUPLICATE_ENTRY',
-          existingId: existingDonor.id,
-        },
-        { status: 409 }
-      )
+    // Helper function to convert DD-MM-YYYY to sortable YYYY-MM-DD
+    function parseSortable(d: string) {
+      if (!d) return '0000-00-00';
+      const p = d.split('-');
+      if (p.length !== 3) return d;
+      return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
     }
 
-    // Create donor
-    const donor = await prisma.donor.create({
-      data: donorData,
-    })
+    // 1. Find existing donor profile by phone (or by name if phone is empty)
+    let existingProfile = null;
+    if (donorData.phone && donorData.phone.length >= 10) {
+      existingProfile = await prisma.donor.findFirst({
+        where: { phone: donorData.phone },
+        include: { donations: true }
+      });
+    } else if (donorData.name) {
+      existingProfile = await prisma.donor.findFirst({
+        where: { name: { equals: donorData.name, mode: 'insensitive' } },
+        include: { donations: true }
+      });
+    }
 
-    return NextResponse.json({ success: true, donor }, { status: 201 })
+    if (existingProfile) {
+      // Check for duplicate donation record on the exact same date
+      const isDuplicateDate = existingProfile.donations.some(
+        rec => rec.date === donorData.date
+      );
+
+      if (isDuplicateDate) {
+        return NextResponse.json(
+          {
+            error: `Duplicate entry: "${donorData.name}" already has a donation recorded on ${donorData.date}.`,
+            code: 'DUPLICATE_ENTRY',
+            existingId: existingProfile.id,
+          },
+          { status: 409 }
+        );
+      }
+
+      // Check if new date is more recent than current lastDonationDate
+      const currentLastDate = existingProfile.lastDonationDate || existingProfile.date;
+      const isNewer = parseSortable(donorData.date) >= parseSortable(currentLastDate);
+
+      // Create new DonationRecord
+      await prisma.donationRecord.create({
+        data: {
+          donorId: existingProfile.id,
+          date: donorData.date,
+          referrer: donorData.referrer,
+        }
+      });
+
+      // Update donor profile stats & latest info
+      const updatedDonor = await prisma.donor.update({
+        where: { id: existingProfile.id },
+        data: {
+          donationCount: { increment: 1 },
+          lastDonationDate: isNewer ? donorData.date : currentLastDate,
+          date: isNewer ? donorData.date : existingProfile.date,
+          bloodGroup: donorData.bloodGroup || existingProfile.bloodGroup,
+          batch: (donorData.batch && donorData.batch !== 'Unknown') ? donorData.batch : existingProfile.batch,
+          hallName: donorData.hallName || existingProfile.hallName,
+        },
+        include: { donations: true }
+      });
+
+      return NextResponse.json({ success: true, donor: updatedDonor, isNewProfile: false }, { status: 201 });
+    }
+
+    // 2. Create new Donor profile + initial DonationRecord
+    const newDonor = await prisma.donor.create({
+      data: {
+        name: donorData.name,
+        bloodGroup: donorData.bloodGroup,
+        batch: donorData.batch,
+        phone: donorData.phone,
+        date: donorData.date,
+        lastDonationDate: donorData.date,
+        donationCount: 1,
+        referrer: donorData.referrer,
+        hallName: donorData.hallName,
+        donations: {
+          create: {
+            date: donorData.date,
+            referrer: donorData.referrer,
+          }
+        }
+      },
+      include: { donations: true }
+    });
+
+    return NextResponse.json({ success: true, donor: newDonor, isNewProfile: true }, { status: 201 });
   } catch (error: unknown) {
     // Enhanced error logging
     const errorDetails: {
@@ -192,6 +258,11 @@ export async function GET(request: NextRequest) {
     // We fetch all matching donors first, then filter by date in memory
     let donors = await prisma.donor.findMany({
       where,
+      include: {
+        donations: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
     })
 
     // Filter by date range if specified (using donation date, not createdAt)

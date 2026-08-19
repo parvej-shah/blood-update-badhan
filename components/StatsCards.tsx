@@ -23,6 +23,7 @@ interface MonthlyStats {
 
 interface AllTimeStats {
   totalDonors: number
+  totalDonations?: number
   monthlyData: Array<{
     month: string
     [key: string]: string | number
@@ -113,10 +114,10 @@ export function StatsCards() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{allTimeStats?.totalDonors || 0}</div>
+            <div className="text-3xl font-bold text-foreground">{allTimeStats?.totalDonations || allTimeStats?.totalDonors || 0}</div>
             <p className="text-muted-foreground text-xs mt-1 flex items-center gap-1">
               <Heart className="h-3 w-3 text-primary" />
-              total donations
+              total donations ({allTimeStats?.totalDonors || 0} unique donors)
             </p>
           </CardContent>
         </Card>

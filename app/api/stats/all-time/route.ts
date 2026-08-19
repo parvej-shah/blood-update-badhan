@@ -15,8 +15,11 @@ function parseDonationDate(dateStr: string): Date | null {
 
 export async function GET() {
   try {
-    // Get total donors
+    // Get total unique donor profiles
     const totalDonors = await prisma.donor.count()
+
+    // Get total historical donation records
+    const totalDonations = await prisma.donationRecord.count()
 
     // Get all donors with their donation dates
     const donors = await prisma.donor.findMany({
@@ -65,6 +68,7 @@ export async function GET() {
 
     return NextResponse.json({
       totalDonors,
+      totalDonations,
       monthlyData: monthlyChartData,
     })
   } catch (error) {

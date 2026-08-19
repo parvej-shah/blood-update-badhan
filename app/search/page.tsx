@@ -33,6 +33,7 @@ const bloodGroupColors: Record<string, string> = {
 }
 
 interface AvailableDonor {
+  id?: string
   phone: string
   name: string
   bloodGroup: string
@@ -40,6 +41,8 @@ interface AvailableDonor {
   hallName: string | null
   lastDonationDate: string
   daysSinceLastDonation: number
+  donationCount?: number
+  donations?: Array<{ id?: string; date: string; referrer: string | null }>
 }
 
 interface SearchResponse {
@@ -309,15 +312,38 @@ export default function SearchDonorPage() {
                           </div>
                         </div>
 
-                        {/* Days Since */}
-                        <div className="flex items-center gap-2">
+                        {/* Days Since & Donation Count */}
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             {formatDaysSince(donor.daysSinceLastDonation)} ago
                           </Badge>
                           <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
                             Available
                           </Badge>
+                          <Badge variant="secondary" className="text-xs gap-1 bg-rose-50 text-rose-700 border-rose-200">
+                            <Droplets className="h-3 w-3" />
+                            {donor.donationCount || 1} {donor.donationCount === 1 ? 'donation' : 'donations'}
+                          </Badge>
                         </div>
+
+                        {/* Expandable History */}
+                        {donor.donations && donor.donations.length > 0 && (
+                          <div className="pt-2 border-t mt-2">
+                            <details className="text-xs group">
+                              <summary className="cursor-pointer font-medium text-primary hover:underline flex items-center justify-between">
+                                <span>Donation History ({donor.donations.length})</span>
+                              </summary>
+                              <div className="mt-2 space-y-1.5 pl-2 border-l-2 border-primary/20 max-h-32 overflow-y-auto">
+                                {donor.donations.map((rec, i) => (
+                                  <div key={rec.id || i} className="flex justify-between text-muted-foreground">
+                                    <span className="font-mono">{formatDate(rec.date)}</span>
+                                    {rec.referrer && <span className="truncate max-w-[120px]">Ref: {rec.referrer}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          </div>
+                        )}
 
                         {/* Hall Name */}
                         {donor.hallName && (

@@ -11,22 +11,39 @@ datasource db {
 }
 
 model Donor {
-  id          String   @id @default(cuid())
-  name        String
-  bloodGroup  String
-  batch       String?
-  phone       String
-  date        String
-  referrer    String?
-  hallName    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String           @id @default(cuid())
+  name             String
+  bloodGroup       String
+  batch            String?
+  phone            String
+  date             String
+  referrer         String?
+  hallName         String?
+  donationCount    Int              @default(1)
+  lastDonationDate String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  donations        DonationRecord[]
 
   @@index([bloodGroup])
   @@index([date])
   @@index([createdAt])
   @@unique([phone, date, name])
   @@map("Donor")
+}
+
+model DonationRecord {
+  id        String   @id @default(cuid())
+  donorId   String
+  donor     Donor    @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  date      String
+  referrer  String?
+  location  String?
+  createdAt DateTime @default(now())
+
+  @@index([donorId])
+  @@index([date])
+  @@map("DonationRecord")
 }
 
 model ParsingExample {
