@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { Droplets, Home, UserPlus, BarChart3, Search } from "lucide-react"
+import { Droplets, Home, UserPlus, BarChart3, Search, Award, Sparkles, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TransitionLink } from "@/components/TransitionLink"
 
@@ -13,6 +13,19 @@ export function Navigation() {
     { href: "/submit", label: "Submit Donor", icon: UserPlus },
     { href: "/search", label: "Search Donor", icon: Search },
     { href: "/reports", label: "Reports", icon: BarChart3 },
+  ]
+
+  const externalTools = [
+    {
+      href: "https://badhan-certificate.lovable.app/",
+      label: "Certificates",
+      icon: Award,
+    },
+    {
+      href: "https://parvej-shah.github.io/badhan-benner-generator/",
+      label: "Banner Generator",
+      icon: Sparkles,
+    },
   ]
 
   return (
@@ -42,19 +55,41 @@ export function Navigation() {
             {navItems.map((item) => {
               const Icon = item.icon
               return (
-              <TransitionLink
-                key={item.href}
-                href={item.href}
-                className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                  pathname === item.href
+                <TransitionLink
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    pathname === item.href
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
                   <Icon className="h-4 w-4" />
-                {item.label}
-              </TransitionLink>
+                  {item.label}
+                </TransitionLink>
+              )
+            })}
+
+            {/* Divider */}
+            <div className="h-5 w-px bg-border mx-1 lg:mx-2" />
+
+            {/* External Tools */}
+            {externalTools.map((tool) => {
+              const Icon = tool.icon
+              return (
+                <a
+                  key={tool.href}
+                  href={tool.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 lg:px-3.5 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 group"
+                  title={`Open ${tool.label}`}
+                >
+                  <Icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform duration-200" />
+                  <span>{tool.label}</span>
+                  <ExternalLink className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </a>
               )
             })}
           </div>

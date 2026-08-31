@@ -11,6 +11,26 @@ export function Footer() {
             <span className="font-semibold text-sm">Badhan</span>
             <span className="text-muted-foreground text-sm">• Amar Ekushey Hall Unit</span>
           </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap justify-center mt-1">
+            <span className="font-medium text-foreground">Tools:</span>
+            <a
+              href="https://badhan-certificate.lovable.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+            >
+              Certificate Generator
+            </a>
+            <span>•</span>
+            <a
+              href="https://parvej-shah.github.io/badhan-benner-generator/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+            >
+              Banner Generator
+            </a>
+          </div>
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5 flex-wrap mt-1">
             <span>For volunteers by</span>
             <a
