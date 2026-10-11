@@ -164,10 +164,10 @@ export async function processDonorMessage(
             } else if (process.env.VERCEL) {
               // Fallback: construct from Vercel deployment URL
               // This should be set via NEXT_PUBLIC_API_URL in production
-              apiUrl = 'https://badhan-blood-update.vercel.app'
+              apiUrl = 'https://badhan.parvejshah.com'
             } else {
               // Default fallback for production
-              apiUrl = 'https://badhan-blood-update.vercel.app'
+              apiUrl = 'https://badhan.parvejshah.com'
             }
           } else {
             // Default to localhost for development
