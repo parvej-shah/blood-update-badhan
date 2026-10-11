@@ -12,11 +12,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call /api/stats/all-time
+        env:
+          RAW_SITE_URL: ${{ secrets.SITE_URL }}
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.SITE_URL }}/api/stats/all-time")
-          echo "HTTP status: $response"
-          if [ "$response" -ne 200 ]; then
-            echo "API call failed with status $response"
+          if [ -z "$RAW_SITE_URL" ]; then
+            echo "Error: SITE_URL secret is not configured in repository secrets."
             exit 1
           fi
-          echo "Stats API called successfully"
+
+          SITE_URL="${RAW_SITE_URL%/}"
+          TARGET_URL="${SITE_URL}/api/stats/all-time"
+
+          echo "Pinging: $TARGET_URL"
+          max_attempts=3
+          attempt=1
+          success=false
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "--- Attempt $attempt of $max_attempts ---"
+            response_file=$(mktemp)
+            http_code=$(curl -sSL -w "%{http_code}" --connect-timeout 10 --max-time 30 -o "$response_file" "$TARGET_URL")
+
+            echo "HTTP status: $http_code"
+            echo "Response: $(head -c 500 "$response_file")"
+            echo ""
+
+            if [ "$http_code" -eq 200 ]; then
+              echo "Stats API called successfully."
+              rm -f "$response_file"
+              success=true
+              break
+            fi
+
+            rm -f "$response_file"
+            if [ $attempt -lt $max_attempts ]; then
+              echo "Request failed with status $http_code. Retrying in 5 seconds..."
+              sleep 5
+            fi
+            attempt=$((attempt + 1))
+          done
+
+          if [ "$success" != "true" ]; then
+            echo "API call failed after $max_attempts attempts."
+            exit 1
+          fi
